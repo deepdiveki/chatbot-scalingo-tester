@@ -1,37 +1,49 @@
 // Save messages to sessionStorage
 function saveConversationToSessionStorage(message, sender) {
-    let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
-    conversation.push({ sender, message });
-    sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation));
+    try {
+        // Retrieve current conversation or initialize an empty array
+        let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
+        conversation.push({ sender, message }); // Add the new message
+        sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation)); // Save back to sessionStorage
+    } catch (error) {
+        console.error("Error saving to sessionStorage:", error);
+    }
 }
 
 // Load messages from sessionStorage
 function loadConversationFromSessionStorage() {
-    const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
-    conversation.forEach(({ sender, message }) => {
-        const messageWrapper = document.createElement("div");
-        messageWrapper.style.margin = "5px 0";
+    try {
+        const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
 
-        const messageElement = document.createElement("div");
-        messageElement.innerText = message;
-        messageElement.style.padding = "10px";
-        messageElement.style.borderRadius = "15px";
-        messageElement.style.display = "inline-block";
+        // Loop through messages and display them
+        conversation.forEach(({ sender, message }) => {
+            const messageWrapper = document.createElement("div");
+            messageWrapper.style.margin = "5px 0";
 
-        // Style based on sender
-        if (sender === "user") {
-            messageWrapper.style.textAlign = "right";
-            messageElement.style.backgroundColor = "#2463EB";
-            messageElement.style.color = "white";
-        } else {
-            messageWrapper.style.textAlign = "left";
-            messageElement.style.backgroundColor = "#F0F0F0";
-            messageElement.style.color = "black";
-        }
+            const messageElement = document.createElement("div");
+            messageElement.innerText = message;
+            messageElement.style.padding = "10px";
+            messageElement.style.borderRadius = "15px";
+            messageElement.style.display = "inline-block";
 
-        messageWrapper.appendChild(messageElement);
-        chatArea.appendChild(messageWrapper);
-    });
+            // Style messages based on sender
+            if (sender === "user") {
+                messageWrapper.style.textAlign = "right";
+                messageElement.style.backgroundColor = "#2463EB";
+                messageElement.style.color = "white";
+            } else {
+                messageWrapper.style.textAlign = "left";
+                messageElement.style.backgroundColor = "#F0F0F0";
+                messageElement.style.color = "black";
+            }
+
+            messageWrapper.appendChild(messageElement);
+            chatArea.appendChild(messageWrapper); // Append to chatArea
+        });
+    } catch (error) {
+        console.error("Error loading from sessionStorage:", error);
+        sessionStorage.removeItem("chatbotConversation"); // Clear corrupted data if any
+    }
 }
 
 // Wait for the DOM to load
@@ -88,8 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally to chat area
 
     // Load previous conversation
-    loadConversationFromSessionStorage();
     chatbotContainer.appendChild(chatArea);
+    loadConversationFromSessionStorage();
 
     // Add input area
     const inputArea = document.createElement("div");
