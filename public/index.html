@@ -3,86 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
-    <style>
-        /* Styling for the Chat Button */
-        #chat-toggle-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 16px;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Styling for the Chat Iframe */
-        #chat-iframe {
-            position: fixed;
-            bottom: 70px;
-            right: 20px;
-            width: 400px;
-            height: 600px;
-            border: none;
-            z-index: 1000;
-            display: none; /* Hidden initially */
-        }
-    </style>
+    <title>Chatbot Integration</title>
 </head>
 <body>
-    <h1>Welcome to My Chatbot</h1>
-    <p>Click the "Chat" button to start a conversation!</p>
-
-    <script>
-        (function () {
-            let iframe = document.getElementById('chat-iframe');
-            let button = document.getElementById('chat-toggle-button');
-
-            if (!button) {
-                // Create the toggle button
-                button = document.createElement("button");
-                button.id = "chat-toggle-button";
-                button.innerText = "Chat";
-                button.style.position = "fixed";
-                button.style.bottom = "20px";
-                button.style.right = "20px";
-                button.style.backgroundColor = "#007BFF";
-                button.style.color = "white";
-                button.style.border = "none";
-                button.style.padding = "10px 20px";
-                button.style.borderRadius = "50px";
-                button.style.cursor = "pointer";
-                button.style.fontSize = "16px";
-                button.style.zIndex = "1000";
-                document.body.appendChild(button);
-            }
-
-            if (!iframe) {
-                // Create the iframe
-                iframe = document.createElement("iframe");
-                iframe.id = "chat-iframe";
-                iframe.src = "https://tester.osc-fr1.scalingo.io/"; // Replace with your chatbot's URL
-                iframe.style.width = "400px";
-                iframe.style.height = "600px";
-                iframe.style.border = "none";
-                iframe.style.position = "fixed";
-                iframe.style.bottom = "70px";
-                iframe.style.right = "20px";
-                iframe.style.zIndex = "1000";
-                iframe.style.display = "none";
-                document.body.appendChild(iframe);
-            }
-
-            // Toggle iframe visibility when the button is clicked
-            button.addEventListener("click", () => {
-                iframe.style.display = iframe.style.display === "none" ? "block" : "none";
-            });
-        })();
-    </script>
+    <h1></h1>
+    <div id="chatbot-container"></div>
+    <script src="chatbot.js" defer></script>
 </body>
 </html>
