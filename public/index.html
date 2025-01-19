@@ -38,21 +38,51 @@
     <h1>Welcome to My Chatbot</h1>
     <p>Click the "Chat" button to start a conversation!</p>
 
-    <!-- Chat Toggle Button -->
-    <button id="chat-toggle-button">Chat</button>
-
-    <!-- Chat Iframe -->
-    <iframe id="chat-iframe" src="https://tester.osc-fr1.scalingo.io/"></iframe>
-
     <script>
-        // JavaScript for toggle functionality
-        const chatButton = document.getElementById('chat-toggle-button');
-        const chatIframe = document.getElementById('chat-iframe');
+        (function () {
+            let iframe = document.getElementById('chat-iframe');
+            let button = document.getElementById('chat-toggle-button');
 
-        // Toggle iframe visibility when button is clicked
-        chatButton.addEventListener('click', () => {
-            chatIframe.style.display = chatIframe.style.display === 'none' ? 'block' : 'none';
-        });
+            if (!button) {
+                // Create the toggle button
+                button = document.createElement("button");
+                button.id = "chat-toggle-button";
+                button.innerText = "Chat";
+                button.style.position = "fixed";
+                button.style.bottom = "20px";
+                button.style.right = "20px";
+                button.style.backgroundColor = "#007BFF";
+                button.style.color = "white";
+                button.style.border = "none";
+                button.style.padding = "10px 20px";
+                button.style.borderRadius = "50px";
+                button.style.cursor = "pointer";
+                button.style.fontSize = "16px";
+                button.style.zIndex = "1000";
+                document.body.appendChild(button);
+            }
+
+            if (!iframe) {
+                // Create the iframe
+                iframe = document.createElement("iframe");
+                iframe.id = "chat-iframe";
+                iframe.src = "https://tester.osc-fr1.scalingo.io/"; // Replace with your chatbot's URL
+                iframe.style.width = "400px";
+                iframe.style.height = "600px";
+                iframe.style.border = "none";
+                iframe.style.position = "fixed";
+                iframe.style.bottom = "70px";
+                iframe.style.right = "20px";
+                iframe.style.zIndex = "1000";
+                iframe.style.display = "none";
+                document.body.appendChild(iframe);
+            }
+
+            // Toggle iframe visibility when the button is clicked
+            button.addEventListener("click", () => {
+                iframe.style.display = iframe.style.display === "none" ? "block" : "none";
+            });
+        })();
     </script>
 </body>
 </html>
