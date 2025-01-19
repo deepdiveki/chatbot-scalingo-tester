@@ -54,7 +54,7 @@ app.post('/chat', async (req, res) => {
 
 // Default route
 app.get('/', (req, res) => {
-    res.send('Chatbot is running. Use the /chat endpoint to interact.');
+    res.send('Chatbot is running yes. Use the /chat endpoint to interact.');
 });
 
 // Start server (if not for serverless environments)
