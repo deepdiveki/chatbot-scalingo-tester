@@ -1,3 +1,39 @@
+// Save messages to sessionStorage
+function saveConversationToSessionStorage(message, sender) {
+    let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
+    conversation.push({ sender, message });
+    sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation));
+}
+
+// Load messages from sessionStorage
+function loadConversationFromSessionStorage() {
+    const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
+    conversation.forEach(({ sender, message }) => {
+        const messageWrapper = document.createElement("div");
+        messageWrapper.style.margin = "5px 0";
+
+        const messageElement = document.createElement("div");
+        messageElement.innerText = message;
+        messageElement.style.padding = "10px";
+        messageElement.style.borderRadius = "15px";
+        messageElement.style.display = "inline-block";
+
+        // Style based on sender
+        if (sender === "user") {
+            messageWrapper.style.textAlign = "right";
+            messageElement.style.backgroundColor = "#2463EB";
+            messageElement.style.color = "white";
+        } else {
+            messageWrapper.style.textAlign = "left";
+            messageElement.style.backgroundColor = "#F0F0F0";
+            messageElement.style.color = "black";
+        }
+
+        messageWrapper.appendChild(messageElement);
+        chatArea.appendChild(messageWrapper);
+    });
+}
+
 // Wait for the DOM to load
 document.addEventListener("DOMContentLoaded", () => {
     // Create chatbot toggle button
@@ -50,6 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.padding = "10px";
     chatArea.style.overflowY = "auto";
     chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally to chat area
+
+    // Load previous conversation
+    loadConversationFromSessionStorage();
     chatbotContainer.appendChild(chatArea);
 
     // Add input area
@@ -109,6 +148,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Append the wrapper to the chat area
             chatArea.appendChild(userMessageWrapper);
 
+            saveConversationToSessionStorage(userMessage, "user"); // Save user message
+
             // Clear the input field
             input.value = "";
             chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
@@ -149,6 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Append the wrapper to the chat area
                     chatArea.appendChild(botMessageWrapper);
+
+                    saveConversationToSessionStorage(data.reply, "bot"); // Save bot message
                     chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
                 })
                 .catch(error => {
