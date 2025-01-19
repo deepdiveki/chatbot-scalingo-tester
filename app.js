@@ -15,39 +15,7 @@ app.use(cors({ origin: '*' })); // Allow all origins (restrict in production)
 // Serve static files (frontend)
 app.use(express.static(path.join(__dirname, 'public')));
 
-const ASSISTANT_ID = 'asst_ZnjlwXkf1ddTQaq6K8k2Uktp';
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // API-Schlüssel aus Umgebungsvariablen
-
-// Funktion: Anfrage an den Assistenten senden
-async function queryAssistant(userMessage) {
-    try {
-        const response = await axios.post(
-            `https://api.openai.com/v1/assistants/${ASSISTANT_ID}/messages`,
-            {
-                messages: [
-                    { role: 'user', content: userMessage }
-                ]
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${OPENAI_API_KEY}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        return response.data.choices[0].message.content; // Antwortinhalt zurückgeben
-    } catch (error) {
-        // Detaillierte Fehlerausgabe
-        if (error.response) {
-            console.error('OpenAI API Error Response:', error.response.data); // API-Antwortdetails
-        } else {
-            console.error('Error querying OpenAI API:', error.message); // Allgemeine Fehlermeldung
-        }
-        throw error; // Fehler weiterwerfen
-    }
-}
-
-// Route für den Chatbot
+// Chatbot route
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
 
@@ -56,22 +24,36 @@ app.post('/chat', async (req, res) => {
     }
 
     try {
-        const botResponse = await queryAssistant(userMessage); // Anfrage an den Assistenten
-        res.json({ reply: botResponse }); // Antwort zurückgeben
+        // Call OpenAI GPT API
+        const gptResponse = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-4o-mini', // Choose the model (e.g., gpt-4 or gpt-3.5-turbo)
+                messages: [
+                    { role: 'system', content: 'You are a helpful chatbot.' },
+                    { role: 'user', content: userMessage },
+                ],
+                max_tokens: 50, // Limit the response length
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        // Extract the bot's reply from the API response
+        const botResponse = gptResponse.data.choices[0].message.content;
+
+        // Send the response to the user
+        res.json({ reply: botResponse });
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error communicating with OpenAI API:', error.message);
 
-        // Fehlerdetails für den Chat zurückgeben
-        let errorDetails = {
-            message: error.message,
-        };
-
-        if (error.response) {
-            errorDetails.apiResponse = error.response.data; // API-Fehlerdetails
-        }
-
+        // Return an error response
         res.status(500).json({
-            reply: `Sorry, there was an issue processing your request. Details: ${JSON.stringify(errorDetails, null, 2)}`
+            reply: "Sorry, I encountered an issue generating a response. Try again later.",
         });
     }
 });
