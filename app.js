@@ -37,8 +37,13 @@ async function queryAssistant(userMessage) {
         );
         return response.data.choices[0].message.content; // Antwortinhalt zurückgeben
     } catch (error) {
-        console.error('Error querying OpenAI Assistant:', error.response?.data || error.message);
-        throw new Error('Failed to communicate with OpenAI Assistant.');
+        // Detaillierte Fehlerausgabe
+        if (error.response) {
+            console.error('OpenAI API Error Response:', error.response.data); // API-Antwortdetails
+        } else {
+            console.error('Error querying OpenAI API:', error.message); // Allgemeine Fehlermeldung
+        }
+        throw error; // Fehler weiterwerfen
     }
 }
 
@@ -55,8 +60,18 @@ app.post('/chat', async (req, res) => {
         res.json({ reply: botResponse }); // Antwort zurückgeben
     } catch (error) {
         console.error('Error:', error.message);
+
+        // Fehlerdetails für den Chat zurückgeben
+        let errorDetails = {
+            message: error.message,
+        };
+
+        if (error.response) {
+            errorDetails.apiResponse = error.response.data; // API-Fehlerdetails
+        }
+
         res.status(500).json({
-            reply: "Sorry, I encountered an issue generating a response. Try again later."
+            reply: `Sorry, there was an issue processing your request. Details: ${JSON.stringify(errorDetails, null, 2)}`
         });
     }
 });
