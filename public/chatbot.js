@@ -9,12 +9,13 @@ function loadChatbotVisibilityState() {
 // Save messages to sessionStorage
 function saveConversationToSessionStorage(message, sender) {
     try {
-        // Retrieve current conversation or initialize an empty array
         let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
-        conversation.push({ sender, message }); // Add the new message
-        sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation)); // Save back to sessionStorage
+        conversation.push({ sender, message });
+        sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation));
+        displaySuccessMessage(`Message saved: ${sender === "user" ? "You" : "Bot"}`);
     } catch (error) {
-        console.error("Error saving to sessionStorage:", error);
+        console.error("Error saving conversation to sessionStorage:", error);
+        displayErrorMessage("Error saving conversation. Please try again.");
     }
 }
 
@@ -22,8 +23,12 @@ function saveConversationToSessionStorage(message, sender) {
 function loadConversationFromSessionStorage() {
     try {
         const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
+        if (conversation.length === 0) {
+            displaySuccessMessage("No previous conversation found.");
+        } else {
+            displaySuccessMessage("Previous conversation loaded successfully.");
+        }
 
-        // Loop through messages and display them
         conversation.forEach(({ sender, message }) => {
             const messageWrapper = document.createElement("div");
             messageWrapper.style.margin = "5px 0";
@@ -46,12 +51,51 @@ function loadConversationFromSessionStorage() {
             }
 
             messageWrapper.appendChild(messageElement);
-            chatArea.appendChild(messageWrapper); // Append to chatArea
+            chatArea.appendChild(messageWrapper);
         });
     } catch (error) {
-        console.error("Error loading from sessionStorage:", error);
-        sessionStorage.removeItem("chatbotConversation"); // Clear corrupted data if any
+        console.error("Error loading conversation from sessionStorage:", error);
+        displayErrorMessage("Error loading conversation. The chat history may be corrupted.");
+        sessionStorage.removeItem("chatbotConversation"); // Clear corrupted data
     }
+}
+
+function displayErrorMessage(message) {
+    const errorWrapper = document.createElement("div");
+    errorWrapper.style.margin = "10px 0";
+
+    const errorElement = document.createElement("div");
+    errorElement.innerText = `Error: ${message}`;
+    errorElement.style.backgroundColor = "#FFCCCC"; // Light red for errors
+    errorElement.style.color = "red";
+    errorElement.style.padding = "10px";
+    errorElement.style.borderRadius = "15px";
+    errorElement.style.display = "inline-block";
+    errorElement.style.textAlign = "left";
+
+    errorWrapper.appendChild(errorElement);
+    chatArea.appendChild(errorWrapper);
+
+    chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+}
+
+function displaySuccessMessage(message) {
+    const successWrapper = document.createElement("div");
+    successWrapper.style.margin = "10px 0";
+
+    const successElement = document.createElement("div");
+    successElement.innerText = `Success: ${message}`;
+    successElement.style.backgroundColor = "#DFF2BF"; // Light green for success
+    successElement.style.color = "green";
+    successElement.style.padding = "10px";
+    successElement.style.borderRadius = "15px";
+    successElement.style.display = "inline-block";
+    successElement.style.textAlign = "left";
+
+    successWrapper.appendChild(successElement);
+    chatArea.appendChild(successWrapper);
+
+    chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
 }
 
 // Wait for the DOM to load
