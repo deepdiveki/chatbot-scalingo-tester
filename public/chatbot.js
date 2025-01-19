@@ -3,11 +3,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create chatbot toggle button
     const toggleButton = document.createElement("button");
     toggleButton.id = "chat-toggle-button";
-    toggleButton.innerText = "Chat";
+    toggleButton.innerText = "ChatBot";
     toggleButton.style.position = "fixed";
     toggleButton.style.bottom = "20px";
     toggleButton.style.right = "20px";
-    toggleButton.style.backgroundColor = "#007BFF";
+    toggleButton.style.backgroundColor = "#2463EB";
     toggleButton.style.color = "white";
     toggleButton.style.border = "none";
     toggleButton.style.padding = "10px 20px";
@@ -35,12 +35,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add header
     const header = document.createElement("div");
-    header.style.backgroundColor = "#007BFF";
+    header.style.backgroundColor = "#2463EB";
     header.style.color = "white";
     header.style.padding = "10px";
     header.style.textAlign = "center";
     header.style.fontWeight = "bold";
-    header.innerText = "Chatbot";
+    header.innerText = "ChatBot TES Mölln";
     chatbotContainer.appendChild(header);
 
     // Add chat area
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     input.style.outline = "none";
     const sendButton = document.createElement("button");
     sendButton.innerText = "Send";
-    sendButton.style.backgroundColor = "#007BFF";
+    sendButton.style.backgroundColor = "#2463EB";
     sendButton.style.color = "white";
     sendButton.style.border = "none";
     sendButton.style.padding = "10px";
@@ -89,13 +89,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const userMessage = input.value.trim();
 
         if (userMessage) {
+            // Create a wrapper for alignment
+            const userMessageWrapper = document.createElement("div");
+            userMessageWrapper.style.textAlign = "right"; // Align wrapper to the right
+
             // Display user message in chat area
             const userMessageElement = document.createElement("div");
             userMessageElement.innerText = userMessage;
             userMessageElement.style.margin = "5px 0";
-            userMessageElement.style.textAlign = "right";
-            userMessageElement.style.color = "blue";
-            chatArea.appendChild(userMessageElement);
+            userMessageElement.style.backgroundColor = "#2463EB"; // blue for user messages
+            userMessageElement.style.color = "white";
+            userMessageElement.style.padding = "10px";
+            userMessageElement.style.borderRadius = "15px";
+            userMessageElement.style.display = "inline-block"; // Ensure it's a bubble
+            // Append the message bubble to the wrapper
+            userMessageWrapper.appendChild(userMessageElement);
+
+            // Append the wrapper to the chat area
+            chatArea.appendChild(userMessageWrapper);
 
             // Clear the input field
             input.value = "";
@@ -109,13 +120,34 @@ document.addEventListener("DOMContentLoaded", () => {
             })
                 .then(response => response.json())
                 .then(data => {
-                    // Display bot response in chat area
+                    // Create a wrapper for the bot message
+                    const botMessageWrapper = document.createElement("div");
+                    botMessageWrapper.style.margin = "10px 0"; // Add space between messages
+
+                    // Add the bot's name above the response
+                    const botName = document.createElement("div");
+                    botName.innerText = "Till-Eulenspiegel-Schule Mölln";
+                    botName.style.fontWeight = "bold"; // Make the name bold
+                    botName.style.marginBottom = "5px"; // Add space between name and response
+                    botName.style.textAlign = "left"; // Align name to the left
+                    botName.style.color = "black"; // Set name color
+
+                    // Add the bot's response
                     const botMessage = document.createElement("div");
-                    botMessage.innerText = "Bot: " + data.reply;
-                    botMessage.style.margin = "5px 0";
+                    botMessage.innerText = data.reply;
                     botMessage.style.textAlign = "left";
-                    botMessage.style.color = "green";
-                    chatArea.appendChild(botMessage);
+                    botMessage.style.backgroundColor = "#F0F0F0"; // Light grey for bot messages
+                    botMessage.style.color = "black";
+                    botMessage.style.padding = "10px";
+                    botMessage.style.borderRadius = "15px";
+                    botMessage.style.display = "inline-block"; // Ensure it's a bubble
+
+                    // Append the bot's name and message to the wrapper
+                    botMessageWrapper.appendChild(botName);
+                    botMessageWrapper.appendChild(botMessage);
+
+                    // Append the wrapper to the chat area
+                    chatArea.appendChild(botMessageWrapper);
                     chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
                 })
                 .catch(error => {
@@ -123,12 +155,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Handle error gracefully
                     const errorMessage = document.createElement("div");
-                    errorMessage.innerText = "Bot: Sorry, something went wrong!";
+                    errorMessage.innerText = "Till-Eulenspiegel-Schule Mölln: Es tut mir leid, da hat etwas nicht funktioniert!";
                     errorMessage.style.margin = "5px 0";
                     errorMessage.style.textAlign = "left";
+                    errorMessage.style.backgroundColor = "#FFCCCC"; // Light red for errors
                     errorMessage.style.color = "red";
+                    errorMessage.style.padding = "10px";
+                    errorMessage.style.borderRadius = "15px";
+                    errorMessage.style.display = "inline-block"; // Ensure it's a bubble
                     chatArea.appendChild(errorMessage);
                 });
+        }
+    });
+    // Handle pressing "Enter" to send a message
+        input.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            sendButton.click(); // Trigger the send button click event
+            event.preventDefault(); // Prevent default form submission behavior
         }
     });
 });
