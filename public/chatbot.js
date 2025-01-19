@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.position = "fixed";
     chatbotContainer.style.bottom = "80px";
     chatbotContainer.style.right = "20px";
-    chatbotContainer.style.width = "300px";
-    chatbotContainer.style.height = "400px";
+    chatbotContainer.style.width = "400px";
+    chatbotContainer.style.height = "600px";
     chatbotContainer.style.border = "1px solid #ddd";
     chatbotContainer.style.borderRadius = "10px";
     chatbotContainer.style.backgroundColor = "white";
@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.flex = "1";
     chatArea.style.padding = "10px";
     chatArea.style.overflowY = "auto";
+    chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally to chat area
     chatbotContainer.appendChild(chatArea);
 
     // Add input area
@@ -57,13 +58,13 @@ document.addEventListener("DOMContentLoaded", () => {
     inputArea.style.borderTop = "1px solid #ddd";
     const input = document.createElement("input");
     input.type = "text";
-    input.placeholder = "Type a message...";
+    input.placeholder = "Stelle hier deine Frage auf Deutsch / Українська ...";
     input.style.flex = "1";
     input.style.border = "none";
     input.style.padding = "10px";
     input.style.outline = "none";
     const sendButton = document.createElement("button");
-    sendButton.innerText = "Send";
+    sendButton.innerHTML = "&#10148;"; // Unicode for a right-pointing arrow (➤)
     sendButton.style.backgroundColor = "#2463EB";
     sendButton.style.color = "white";
     sendButton.style.border = "none";
