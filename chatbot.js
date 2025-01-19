@@ -62,27 +62,53 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(chatbotContainer);
 
     // Handle send button click
-    sendButton.addEventListener("click", () => {
-        const userMessage = input.value.trim();
-        if (userMessage) {
-            const messageElement = document.createElement("div");
-            messageElement.innerText = userMessage;
-            messageElement.style.margin = "5px 0";
-            messageElement.style.textAlign = "right";
-            messageElement.style.color = "blue";
-            chatArea.appendChild(messageElement);
+    // Handle send button click
+    // Handle send button click
+sendButton.addEventListener("click", () => {
+    const userMessage = input.value.trim();
 
-            // Mock chatbot reply
-            const botMessage = document.createElement("div");
-            botMessage.innerText = "Bot: " + "Thanks for your message!";
-            botMessage.style.margin = "5px 0";
-            botMessage.style.textAlign = "left";
-            botMessage.style.color = "green";
-            chatArea.appendChild(botMessage);
+    if (userMessage) {
+        // Display user message in chat area
+        const userMessageElement = document.createElement("div");
+        userMessageElement.innerText = userMessage;
+        userMessageElement.style.margin = "5px 0";
+        userMessageElement.style.textAlign = "right";
+        userMessageElement.style.color = "blue";
+        chatArea.appendChild(userMessageElement);
 
-            // Clear input
-            input.value = "";
-            chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
-        }
-    });
+        // Clear the input field
+        input.value = "";
+        chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+
+        // Send user message to backend and handle response
+        fetch('https://tester.osc-fr1.scalingo.io/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userMessage }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Display bot response in chat area
+                const botMessage = document.createElement("div");
+                botMessage.innerText = "Bot: " + data.reply;
+                botMessage.style.margin = "5px 0";
+                botMessage.style.textAlign = "left";
+                botMessage.style.color = "green";
+                chatArea.appendChild(botMessage);
+                chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+            })
+            .catch(error => {
+                console.error('Error communicating with the backend:', error);
+
+                // Handle error gracefully
+                const errorMessage = document.createElement("div");
+                errorMessage.innerText = "Bot: Sorry, something went wrong!";
+                errorMessage.style.margin = "5px 0";
+                errorMessage.style.textAlign = "left";
+                errorMessage.style.color = "red";
+                chatArea.appendChild(errorMessage);
+            });
+    }
+});
+
 });
