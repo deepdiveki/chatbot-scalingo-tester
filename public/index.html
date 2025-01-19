@@ -3,12 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Integration</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Chatbot</title>
+    <style>
+        /* Styling for the Chat Button */
+        #chat-toggle-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styling for the Chat Iframe */
+        #chat-iframe {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            width: 400px;
+            height: 600px;
+            border: none;
+            z-index: 1000;
+            display: none; /* Hidden initially */
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to My Website</h1>
-    <div id="chatbot-container"></div>
-    <script src="chatbot.js" defer></script>
+    <h1>Welcome to My Chatbot</h1>
+    <p>Click the "Chat" button to start a conversation!</p>
+
+    <!-- Chat Toggle Button -->
+    <button id="chat-toggle-button">Chat</button>
+
+    <!-- Chat Iframe -->
+    <iframe id="chat-iframe" src="https://tester.osc-fr1.scalingo.io/"></iframe>
+
+    <script>
+        // JavaScript for toggle functionality
+        const chatButton = document.getElementById('chat-toggle-button');
+        const chatIframe = document.getElementById('chat-iframe');
+
+        // Toggle iframe visibility when button is clicked
+        chatButton.addEventListener('click', () => {
+            chatIframe.style.display = chatIframe.style.display === 'none' ? 'block' : 'none';
+        });
+    </script>
 </body>
 </html>
