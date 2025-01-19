@@ -1,3 +1,11 @@
+function saveChatbotVisibilityState(isOpen) {
+    sessionStorage.setItem("chatbotVisibility", isOpen ? "open" : "closed");
+}
+
+function loadChatbotVisibilityState() {
+    return sessionStorage.getItem("chatbotVisibility") === "open";
+}
+
 // Save messages to sessionStorage
 function saveConversationToSessionStorage(message, sender) {
     try {
@@ -99,9 +107,15 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.overflowY = "auto";
     chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally to chat area
 
-    // Load previous conversation
     chatbotContainer.appendChild(chatArea);
+
+    // Restore the chatbot's visibility
+    const isChatbotOpen = loadChatbotVisibilityState();
+    chatbotContainer.style.display = isChatbotOpen ? "flex" : "none";
+
+    // Load previous conversation
     loadConversationFromSessionStorage();
+
 
     // Add input area
     const inputArea = document.createElement("div");
@@ -132,8 +146,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle toggle button click to show/hide chatbot
     toggleButton.addEventListener("click", () => {
-        chatbotContainer.style.display =
-            chatbotContainer.style.display === "none" ? "flex" : "none";
+        const isOpen = chatbotContainer.style.display === "none" || chatbotContainer.style.display === "";
+        chatbotContainer.style.display = isOpen ? "flex" : "none";
+        saveChatbotVisibilityState(isOpen); // Save visibility state
     });
 
     // Handle send button click
