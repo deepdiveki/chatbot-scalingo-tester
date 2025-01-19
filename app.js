@@ -3,11 +3,17 @@
 const axios = require('axios');
 const express = require('express');
 const cors = require('cors');
+const path = require("path");
+
 const app = express();
+
 
 // Middleware to parse JSON request bodies and handle CORS
 app.use(express.json());
 app.use(cors({ origin: '*' })); // Allow all origins (restrict in production)
+
+// Serve static files (frontend)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Chatbot route
 app.post('/chat', async (req, res) => {
@@ -52,9 +58,9 @@ app.post('/chat', async (req, res) => {
     }
 });
 
-// Default route
+// Default route (serves the frontend `index.html`)
 app.get('/', (req, res) => {
-    res.send('Chatbot is running yes. Use the /chat endpoint to interact.');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server (if not for serverless environments)
@@ -62,6 +68,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-// Export the app (if used in a serverless environment)
-module.exports = app;
