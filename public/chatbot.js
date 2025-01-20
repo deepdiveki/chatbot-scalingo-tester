@@ -132,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.overflow = "hidden";
     chatbotContainer.style.display = "none"; // Default hidden
     chatbotContainer.style.flexDirection = "column";
-
     document.body.appendChild(chatbotContainer);
 
     // Add header
@@ -176,18 +175,17 @@ document.addEventListener("DOMContentLoaded", () => {
     inputArea.appendChild(sendButton);
     chatbotContainer.appendChild(inputArea);
 
-    // Load previous conversation
-    loadConversationFromSessionStorage();
-
-    // Restore visibility state after all components are added
+    // Restore visibility state
     const isChatbotOpen = loadChatbotVisibilityState();
+    console.log("Initializing chatbot. Is open:", isChatbotOpen);
     chatbotContainer.style.display = isChatbotOpen ? "flex" : "none";
 
     // Handle toggle button click
     toggleButton.addEventListener("click", () => {
-        const isOpen = chatbotContainer.style.display === "none";
-        chatbotContainer.style.display = isOpen ? "flex" : "none";
-        saveChatbotVisibilityState(chatbotContainer.style.display === "flex");
+        const isCurrentlyClosed = chatbotContainer.style.display === "none";
+        chatbotContainer.style.display = isCurrentlyClosed ? "flex" : "none";
+        saveChatbotVisibilityState(isCurrentlyClosed);
+        console.log("Chatbot toggled. Now:", isCurrentlyClosed ? "open" : "closed");
     });
 
     // Handle send button click
