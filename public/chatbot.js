@@ -151,24 +151,8 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.flex = "1";
     chatArea.style.padding = "10px";
     chatArea.style.overflowY = "auto";
-    chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally to chat area
-
+    chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally
     chatbotContainer.appendChild(chatArea);
-
-    // Restore visibility state
-    const isChatbotOpen = loadChatbotVisibilityState();
-    chatbotContainer.style.display = isChatbotOpen ? "flex" : "none";
-
-    // Load previous conversation
-    loadConversationFromSessionStorage();
-
-    // Handle toggle button click
-    toggleButton.addEventListener("click", () => {
-        const isOpen = chatbotContainer.style.display === "none";
-        chatbotContainer.style.display = isOpen ? "flex" : "none";
-        saveChatbotVisibilityState(chatbotContainer.style.display === "flex");
-    });
-
 
     // Add input area
     const inputArea = document.createElement("div");
@@ -188,43 +172,48 @@ document.addEventListener("DOMContentLoaded", () => {
     sendButton.style.border = "none";
     sendButton.style.padding = "10px";
     sendButton.style.cursor = "pointer";
-
-    // Add input and button to input area
     inputArea.appendChild(input);
     inputArea.appendChild(sendButton);
     chatbotContainer.appendChild(inputArea);
+
+    // Load previous conversation
+    loadConversationFromSessionStorage();
+
+    // Restore visibility state after all components are added
+    const isChatbotOpen = loadChatbotVisibilityState();
+    chatbotContainer.style.display = isChatbotOpen ? "flex" : "none";
+
+    // Handle toggle button click
+    toggleButton.addEventListener("click", () => {
+        const isOpen = chatbotContainer.style.display === "none";
+        chatbotContainer.style.display = isOpen ? "flex" : "none";
+        saveChatbotVisibilityState(chatbotContainer.style.display === "flex");
+    });
 
     // Handle send button click
     sendButton.addEventListener("click", () => {
         const userMessage = input.value.trim();
 
         if (userMessage) {
-            // Create a wrapper for alignment
             const userMessageWrapper = document.createElement("div");
-            userMessageWrapper.style.textAlign = "right"; // Align wrapper to the right
+            userMessageWrapper.style.textAlign = "right";
 
-            // Display user message in chat area
             const userMessageElement = document.createElement("div");
             userMessageElement.innerText = userMessage;
             userMessageElement.style.margin = "5px 0";
-            userMessageElement.style.backgroundColor = "#2463EB"; // blue for user messages
+            userMessageElement.style.backgroundColor = "#2463EB";
             userMessageElement.style.color = "white";
             userMessageElement.style.padding = "10px";
             userMessageElement.style.borderRadius = "15px";
-            userMessageElement.style.display = "inline-block"; // Ensure it's a bubble
-            // Append the message bubble to the wrapper
-            userMessageWrapper.appendChild(userMessageElement);
+            userMessageElement.style.display = "inline-block";
 
-            // Append the wrapper to the chat area
+            userMessageWrapper.appendChild(userMessageElement);
             chatArea.appendChild(userMessageWrapper);
 
-            saveConversationToSessionStorage(userMessage, "user"); // Save user message
-
-            // Clear the input field
+            saveConversationToSessionStorage(userMessage, "user");
             input.value = "";
-            chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+            chatArea.scrollTop = chatArea.scrollHeight;
 
-            // Send user message to backend and handle response
             fetch('https://tester.osc-fr1.scalingo.io/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -232,60 +221,44 @@ document.addEventListener("DOMContentLoaded", () => {
             })
                 .then(response => response.json())
                 .then(data => {
-                    // Create a wrapper for the bot message
                     const botMessageWrapper = document.createElement("div");
-                    botMessageWrapper.style.margin = "10px 0"; // Add space between messages
+                    botMessageWrapper.style.margin = "10px 0";
 
-                    // Add the bot's name above the response
                     const botName = document.createElement("div");
                     botName.innerText = "Till-Eulenspiegel-Schule Mölln";
-                    botName.style.fontWeight = "bold"; // Make the name bold
-                    botName.style.marginBottom = "5px"; // Add space between name and response
-                    botName.style.textAlign = "left"; // Align name to the left
-                    botName.style.color = "black"; // Set name color
+                    botName.style.fontWeight = "bold";
+                    botName.style.marginBottom = "5px";
+                    botName.style.textAlign = "left";
+                    botName.style.color = "black";
 
-                    // Add the bot's response
                     const botMessage = document.createElement("div");
                     botMessage.innerText = data.reply;
                     botMessage.style.textAlign = "left";
-                    botMessage.style.backgroundColor = "#F0F0F0"; // Light grey for bot messages
+                    botMessage.style.backgroundColor = "#F0F0F0";
                     botMessage.style.color = "black";
                     botMessage.style.padding = "10px";
                     botMessage.style.borderRadius = "15px";
-                    botMessage.style.display = "inline-block"; // Ensure it's a bubble
+                    botMessage.style.display = "inline-block";
 
-                    // Append the bot's name and message to the wrapper
                     botMessageWrapper.appendChild(botName);
                     botMessageWrapper.appendChild(botMessage);
-
-                    // Append the wrapper to the chat area
                     chatArea.appendChild(botMessageWrapper);
 
-                    saveConversationToSessionStorage(data.reply, "bot"); // Save bot message
-                    chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+                    saveConversationToSessionStorage(data.reply, "bot");
+                    chatArea.scrollTop = chatArea.scrollHeight;
                 })
                 .catch(error => {
                     console.error('Error communicating with the backend:', error);
-
-                    // Handle error gracefully
-                    const errorMessage = document.createElement("div");
-                    errorMessage.innerText = "Till-Eulenspiegel-Schule Mölln: Es tut mir leid, da hat etwas nicht funktioniert!";
-                    errorMessage.style.margin = "5px 0";
-                    errorMessage.style.textAlign = "left";
-                    errorMessage.style.backgroundColor = "#FFCCCC"; // Light red for errors
-                    errorMessage.style.color = "red";
-                    errorMessage.style.padding = "10px";
-                    errorMessage.style.borderRadius = "15px";
-                    errorMessage.style.display = "inline-block"; // Ensure it's a bubble
-                    chatArea.appendChild(errorMessage);
+                    displayErrorMessage("Bot: Es tut mir leid, da hat etwas nicht funktioniert.");
                 });
         }
     });
+
     // Handle pressing "Enter" to send a message
-        input.addEventListener("keypress", (event) => {
+    input.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
-            sendButton.click(); // Trigger the send button click event
-            event.preventDefault(); // Prevent default form submission behavior
+            sendButton.click();
+            event.preventDefault();
         }
     });
 });
