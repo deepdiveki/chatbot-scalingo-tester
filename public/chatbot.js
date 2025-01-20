@@ -130,8 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.backgroundColor = "white";
     chatbotContainer.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
     chatbotContainer.style.overflow = "hidden";
-    chatbotContainer.style.display = "none"; // Hidden initially
+    chatbotContainer.style.display = "none"; // Default hidden
     chatbotContainer.style.flexDirection = "column";
+
+    document.body.appendChild(chatbotContainer);
 
     // Add header
     const header = document.createElement("div");
@@ -153,12 +155,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chatbotContainer.appendChild(chatArea);
 
-    // Restore the chatbot's visibility
+    // Restore visibility state
     const isChatbotOpen = loadChatbotVisibilityState();
     chatbotContainer.style.display = isChatbotOpen ? "flex" : "none";
 
     // Load previous conversation
     loadConversationFromSessionStorage();
+
+    // Handle toggle button click
+    toggleButton.addEventListener("click", () => {
+        const isOpen = chatbotContainer.style.display === "none";
+        chatbotContainer.style.display = isOpen ? "flex" : "none";
+        saveChatbotVisibilityState(chatbotContainer.style.display === "flex");
+    });
 
 
     // Add input area
@@ -184,16 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
     inputArea.appendChild(input);
     inputArea.appendChild(sendButton);
     chatbotContainer.appendChild(inputArea);
-
-    // Add chatbot container to the page
-    document.body.appendChild(chatbotContainer);
-
-    // Handle toggle button click to show/hide chatbot
-    toggleButton.addEventListener("click", () => {
-        const isOpen = chatbotContainer.style.display === "none" || chatbotContainer.style.display === "";
-        chatbotContainer.style.display = isOpen ? "flex" : "none";
-        saveChatbotVisibilityState(isOpen); // Save visibility state
-    });
 
     // Handle send button click
     sendButton.addEventListener("click", () => {
