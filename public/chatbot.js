@@ -8,26 +8,20 @@ function loadChatbotVisibilityState() {
 
 // Save messages to sessionStorage
 function saveConversationToSessionStorage(message, sender) {
-    try {
-        let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
-        conversation.push({ sender, message });
-        sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation));
-        displaySuccessMessage(`Message saved: ${sender === "user" ? "You" : "Bot"}`);
-    } catch (error) {
-        console.error("Error saving conversation to sessionStorage:", error);
-        displayErrorMessage("Error saving conversation. Please try again.");
-    }
+    //sessionStorage.setItem("chatbotMsg", message ? "yes" : "no");
+
+    let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
+    conversation.push({ sender, message });
+    sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation));
+
+    return JSON.stringify(conversation)
 }
 
 // Load messages from sessionStorage
-function loadConversationFromSessionStorage() {
-    try {
+function loadConversationFromSessionStorage(chatArea) {
+    //return sessionStorage.getItem("chatbotMsg");
         const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
-        if (conversation.length === 0) {
-            displaySuccessMessage("No previous conversation found.");
-        } else {
-            displaySuccessMessage("Previous conversation loaded successfully.");
-        }
+        console.log("Loaded conversation:", conversation);
 
         conversation.forEach(({ sender, message }) => {
             const messageWrapper = document.createElement("div");
@@ -39,64 +33,72 @@ function loadConversationFromSessionStorage() {
             messageElement.style.borderRadius = "15px";
             messageElement.style.display = "inline-block";
 
-            // Style messages based on sender
             if (sender === "user") {
                 messageWrapper.style.textAlign = "right";
+                messageElement.style.margin = "5px 0";
                 messageElement.style.backgroundColor = "#2463EB";
                 messageElement.style.color = "white";
+                messageElement.style.padding = "10px";
+                messageElement.style.borderRadius = "15px";
+                messageElement.style.display = "inline-block";
             } else {
-                messageWrapper.style.textAlign = "left";
+                // Create bot message structure
+                const botName = document.createElement("div");
+                botName.innerText = "Till-Eulenspiegel-Schule Mölln";
+                botName.style.fontWeight = "bold";
+                botName.style.marginBottom = "5px";
+                botName.style.textAlign = "left";
+                botName.style.color = "black";
+
+                const botMessage = document.createElement("div");
+                messageElement.innerText = message;
+                messageElement.style.textAlign = "left";
                 messageElement.style.backgroundColor = "#F0F0F0";
                 messageElement.style.color = "black";
+                messageElement.style.padding = "10px";
+                messageElement.style.borderRadius = "15px";
+                messageElement.style.display = "inline-block";
+
+                messageWrapper.appendChild(botName);
             }
 
             messageWrapper.appendChild(messageElement);
             chatArea.appendChild(messageWrapper);
         });
-    } catch (error) {
-        console.error("Error loading conversation from sessionStorage:", error);
-        displayErrorMessage("Error loading conversation. The chat history may be corrupted.");
-        sessionStorage.removeItem("chatbotConversation"); // Clear corrupted data
-    }
+
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+
+        //return JSON.stringify(conversation)
 }
 
-function displayErrorMessage(message) {
-    const errorWrapper = document.createElement("div");
-    errorWrapper.style.margin = "10px 0";
-
-    const errorElement = document.createElement("div");
-    errorElement.innerText = `Error: ${message}`;
-    errorElement.style.backgroundColor = "#FFCCCC"; // Light red for errors
-    errorElement.style.color = "red";
-    errorElement.style.padding = "10px";
-    errorElement.style.borderRadius = "15px";
-    errorElement.style.display = "inline-block";
-    errorElement.style.textAlign = "left";
-
-    errorWrapper.appendChild(errorElement);
-    chatArea.appendChild(errorWrapper);
-
-    chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
-}
-
-function displaySuccessMessage(message) {
-    const successWrapper = document.createElement("div");
-    successWrapper.style.margin = "10px 0";
-
-    const successElement = document.createElement("div");
-    successElement.innerText = `Success: ${message}`;
-    successElement.style.backgroundColor = "#DFF2BF"; // Light green for success
-    successElement.style.color = "green";
-    successElement.style.padding = "10px";
-    successElement.style.borderRadius = "15px";
-    successElement.style.display = "inline-block";
-    successElement.style.textAlign = "left";
-
-    successWrapper.appendChild(successElement);
-    chatArea.appendChild(successWrapper);
-
-    chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
-}
+//function displayInitialMessage() {
+//    const botMessageWrapper = document.createElement("div");
+//    botMessageWrapper.style.margin = "10px 0";
+//
+//    const botName = document.createElement("div");
+//    botName.innerText = "Till-Eulenspiegel-Schule Mölln";
+//    botName.style.fontWeight = "bold";
+//    botName.style.marginBottom = "5px";
+//    botName.style.textAlign = "left";
+//    botName.style.color = "black";
+//
+//    const botMessage = document.createElement("div");
+//    botMessage.innerText = "Hallo! Wie kann ich dir helfen?"; // Your initial message
+//    botMessage.style.textAlign = "left";
+//    botMessage.style.backgroundColor = "#F0F0F0";
+//    botMessage.style.color = "black";
+//    botMessage.style.padding = "10px";
+//    botMessage.style.borderRadius = "15px";
+//    botMessage.style.display = "inline-block";
+//
+//    botMessageWrapper.appendChild(botName);
+//    botMessageWrapper.appendChild(botMessage);
+//    chatArea.appendChild(botMessageWrapper);
+//
+//    // Save the initial message in sessionStorage
+//    //saveConversationToSessionStorage("Hallo! Wie kann ich dir helfen?", "bot");
+//}
 
 // Wait for the DOM to load
 document.addEventListener("DOMContentLoaded", () => {
@@ -153,6 +155,9 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally
     chatbotContainer.appendChild(chatArea);
 
+    // Restore Messages
+    loadConversationFromSessionStorage(chatArea);
+
     // Add input area
     const inputArea = document.createElement("div");
     inputArea.style.display = "flex";
@@ -177,7 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Restore visibility state
     const isChatbotOpen = loadChatbotVisibilityState();
-    console.log("Initializing chatbot. Is open:", isChatbotOpen);
     chatbotContainer.style.display = isChatbotOpen ? "flex" : "none";
 
     // Handle toggle button click
@@ -185,7 +189,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const isCurrentlyClosed = chatbotContainer.style.display === "none";
         chatbotContainer.style.display = isCurrentlyClosed ? "flex" : "none";
         saveChatbotVisibilityState(isCurrentlyClosed);
-        console.log("Chatbot toggled. Now:", isCurrentlyClosed ? "open" : "closed");
     });
 
     // Handle send button click
@@ -208,7 +211,9 @@ document.addEventListener("DOMContentLoaded", () => {
             userMessageWrapper.appendChild(userMessageElement);
             chatArea.appendChild(userMessageWrapper);
 
+            // Save User Message
             saveConversationToSessionStorage(userMessage, "user");
+
             input.value = "";
             chatArea.scrollTop = chatArea.scrollHeight;
 
@@ -219,36 +224,38 @@ document.addEventListener("DOMContentLoaded", () => {
             })
                 .then(response => response.json())
                 .then(data => {
-                    const botMessageWrapper = document.createElement("div");
-                    botMessageWrapper.style.margin = "10px 0";
+                    if (data && data.reply) {
+                        const botMessageWrapper = document.createElement("div");
+                        botMessageWrapper.style.margin = "10px 0";
 
-                    const botName = document.createElement("div");
-                    botName.innerText = "Till-Eulenspiegel-Schule Mölln";
-                    botName.style.fontWeight = "bold";
-                    botName.style.marginBottom = "5px";
-                    botName.style.textAlign = "left";
-                    botName.style.color = "black";
+                        const botName = document.createElement("div");
+                        botName.innerText = "Till-Eulenspiegel-Schule Mölln";
+                        botName.style.fontWeight = "bold";
+                        botName.style.marginBottom = "5px";
+                        botName.style.textAlign = "left";
+                        botName.style.color = "black";
 
-                    const botMessage = document.createElement("div");
-                    botMessage.innerText = data.reply;
-                    botMessage.style.textAlign = "left";
-                    botMessage.style.backgroundColor = "#F0F0F0";
-                    botMessage.style.color = "black";
-                    botMessage.style.padding = "10px";
-                    botMessage.style.borderRadius = "15px";
-                    botMessage.style.display = "inline-block";
+                        const botMessage = document.createElement("div");
+                        botMessage.innerText = data.reply; // Ensure this is the correct property
+                        botMessage.style.textAlign = "left";
+                        botMessage.style.backgroundColor = "#F0F0F0";
+                        botMessage.style.color = "black";
+                        botMessage.style.padding = "10px";
+                        botMessage.style.borderRadius = "15px";
+                        botMessage.style.display = "inline-block";
 
-                    botMessageWrapper.appendChild(botName);
-                    botMessageWrapper.appendChild(botMessage);
-                    chatArea.appendChild(botMessageWrapper);
+                        botMessageWrapper.appendChild(botName);
+                        botMessageWrapper.appendChild(botMessage);
+                        chatArea.appendChild(botMessageWrapper);
 
-                    saveConversationToSessionStorage(data.reply, "bot");
-                    chatArea.scrollTop = chatArea.scrollHeight;
+                        // Save Bot Message
+                        saveConversationToSessionStorage(data.reply, "bot");
+
+                        chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+                    } else {
+                        console.error("Invalid response format:", data);
+                    }
                 })
-                .catch(error => {
-                    console.error('Error communicating with the backend:', error);
-                    displayErrorMessage("Bot: Es tut mir leid, da hat etwas nicht funktioniert.");
-                });
         }
     });
 
