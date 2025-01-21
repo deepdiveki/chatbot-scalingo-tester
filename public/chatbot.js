@@ -1,3 +1,59 @@
+function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
+    // Check if this is the first time the chatbot is opened
+    const isFirstTime = !sessionStorage.getItem("chatbotFirstTime");
+
+    if (isFirstTime) {
+        // Create an overlay container
+        const overlay = document.createElement("div");
+        overlay.style.position = "absolute";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.backgroundColor = "#F0F0F0";
+        overlay.style.display = "flex";
+        overlay.style.flexDirection = "column";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.style.zIndex = "1000";
+
+        // Create the message content
+        const message = document.createElement("div");
+        message.innerHTML = 'Willkommen zum Chatbot ABC! <br> Bitte akzeptieren Sie unsere <a href="https://example.com" target="_blank" style="color: "#2463EB"; text-decoration: underline;">Datenschutzrichtlinien</a>, wenn Sie den Chatbot nutzen wollen.';
+        message.style.color = "black";
+        message.style.fontSize = "18px";
+        message.style.textAlign = "center";
+        message.style.marginBottom = "20px";
+
+        // Create the dismiss button
+        const button = document.createElement("button");
+        button.innerText = "Akzeptieren";
+        button.style.padding = "10px 20px";
+        button.style.backgroundColor = "#2463EB";
+        button.style.color = "white";
+        button.style.border = "none";
+        button.style.borderRadius = "5px";
+        button.style.cursor = "pointer";
+
+        // Append the message and button to the overlay
+        overlay.appendChild(message);
+        overlay.appendChild(button);
+
+        // Append the overlay to the chatbot container
+        chatbotContainer.appendChild(overlay);
+
+        // Handle button click to remove the overlay
+        button.addEventListener("click", () => {
+            sessionStorage.setItem("chatbotFirstTime", "true"); // Mark as not the first time
+            chatbotContainer.removeChild(overlay); // Remove the overlay
+            chatbotContainer.style.display = "flex"; // Open the chatbot
+        });
+    } else {
+        // If it's not the first time, show the chatbot directly
+        chatbotContainer.style.display = "flex";
+    }
+}
+
 function saveChatbotVisibilityState(isOpen) {
     sessionStorage.setItem("chatbotVisibility", isOpen ? "open" : "closed");
 }
@@ -148,6 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check if there are existing messages in sessionStorage
     const existingConversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
     if (existingConversation.length === 0) {
+        showAcceptConditionsScreen(chatbotContainer, toggleButton);
         displayInitialMessage(chatArea);
     }
 
