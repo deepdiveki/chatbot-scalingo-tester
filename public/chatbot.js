@@ -1,3 +1,4 @@
+//Blocker mit Button und link für Datenschutz Accept
 function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
     // Check if this is the first time the chatbot is opened
     const isFirstTime = !sessionStorage.getItem("chatbotFirstTime");
@@ -54,15 +55,16 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
     }
 }
 
+// Speichert ob Chat geöffnet ist
 function saveChatbotVisibilityState(isOpen) {
     sessionStorage.setItem("chatbotVisibility", isOpen ? "open" : "closed");
 }
-
+// Ruf den Status der Funktion darüber auf
 function loadChatbotVisibilityState() {
     return sessionStorage.getItem("chatbotVisibility") === "open";
 }
 
-// Save messages to sessionStorage
+// Save messages to sessionStorage (jedes Mal wenn eine dazu kommt wird der aufgerufen)
 function saveConversationToSessionStorage(message, sender) {
 
     let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
@@ -71,7 +73,7 @@ function saveConversationToSessionStorage(message, sender) {
 
 }
 
-// Load messages from sessionStorage
+// Load messages from sessionStorage (wenn fenster neu geladen oder auf neue Seite gegangen)
 function loadConversationFromSessionStorage(chatArea) {
 
     const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
@@ -85,6 +87,7 @@ function loadConversationFromSessionStorage(chatArea) {
     chatArea.scrollTop = chatArea.scrollHeight;
 }
 
+// Zeigt willkommensnachrichten an
 function displayInitialMessage(chatArea) {
 
     const willkommensNachricht = "Hallo :)"
@@ -101,7 +104,7 @@ function displayInitialMessage(chatArea) {
 
 }
 
-// create Messages
+// Einstellungen für Message Design (Kreiert die nachrichten)
 function createMessage(message, sender) {
 
     const messageWrapper = document.createElement("div");
