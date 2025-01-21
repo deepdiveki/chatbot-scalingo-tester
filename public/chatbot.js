@@ -8,97 +8,83 @@ function loadChatbotVisibilityState() {
 
 // Save messages to sessionStorage
 function saveConversationToSessionStorage(message, sender) {
-    //sessionStorage.setItem("chatbotMsg", message ? "yes" : "no");
 
     let conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
     conversation.push({ sender, message });
     sessionStorage.setItem("chatbotConversation", JSON.stringify(conversation));
 
-    return JSON.stringify(conversation)
 }
 
 // Load messages from sessionStorage
 function loadConversationFromSessionStorage(chatArea) {
-    //return sessionStorage.getItem("chatbotMsg");
-        const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
-        console.log("Loaded conversation:", conversation);
 
-        conversation.forEach(({ sender, message }) => {
-            const messageWrapper = document.createElement("div");
-            messageWrapper.style.margin = "5px 0";
+    const conversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
 
-            const messageElement = document.createElement("div");
-            messageElement.innerText = message;
-            messageElement.style.padding = "10px";
-            messageElement.style.borderRadius = "15px";
-            messageElement.style.display = "inline-block";
-
-            if (sender === "user") {
-                messageWrapper.style.textAlign = "right";
-                messageElement.style.margin = "5px 0";
-                messageElement.style.backgroundColor = "#2463EB";
-                messageElement.style.color = "white";
-                messageElement.style.padding = "10px";
-                messageElement.style.borderRadius = "15px";
-                messageElement.style.display = "inline-block";
-            } else {
-                // Create bot message structure
-                const botName = document.createElement("div");
-                botName.innerText = "Till-Eulenspiegel-Schule Mölln";
-                botName.style.fontWeight = "bold";
-                botName.style.marginBottom = "5px";
-                botName.style.textAlign = "left";
-                botName.style.color = "black";
-
-                const botMessage = document.createElement("div");
-                messageElement.innerText = message;
-                messageElement.style.textAlign = "left";
-                messageElement.style.backgroundColor = "#F0F0F0";
-                messageElement.style.color = "black";
-                messageElement.style.padding = "10px";
-                messageElement.style.borderRadius = "15px";
-                messageElement.style.display = "inline-block";
-
-                messageWrapper.appendChild(botName);
-            }
-
-            messageWrapper.appendChild(messageElement);
-            chatArea.appendChild(messageWrapper);
-        });
-
-        chatArea.scrollTop = chatArea.scrollHeight;
-
-
-        //return JSON.stringify(conversation)
+    conversation.forEach(({ sender, message }) => {
+        // Call createMessage with proper arguments
+        const [messageWrapper, messageElement] = createMessage(message, sender);
+        // Append elements to the chat area
+        chatArea.appendChild(messageWrapper);
+    });
+    chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-//function displayInitialMessage() {
-//    const botMessageWrapper = document.createElement("div");
-//    botMessageWrapper.style.margin = "10px 0";
-//
-//    const botName = document.createElement("div");
-//    botName.innerText = "Till-Eulenspiegel-Schule Mölln";
-//    botName.style.fontWeight = "bold";
-//    botName.style.marginBottom = "5px";
-//    botName.style.textAlign = "left";
-//    botName.style.color = "black";
-//
-//    const botMessage = document.createElement("div");
-//    botMessage.innerText = "Hallo! Wie kann ich dir helfen?"; // Your initial message
-//    botMessage.style.textAlign = "left";
-//    botMessage.style.backgroundColor = "#F0F0F0";
-//    botMessage.style.color = "black";
-//    botMessage.style.padding = "10px";
-//    botMessage.style.borderRadius = "15px";
-//    botMessage.style.display = "inline-block";
-//
-//    botMessageWrapper.appendChild(botName);
-//    botMessageWrapper.appendChild(botMessage);
-//    chatArea.appendChild(botMessageWrapper);
-//
-//    // Save the initial message in sessionStorage
-//    //saveConversationToSessionStorage("Hallo! Wie kann ich dir helfen?", "bot");
-//}
+function displayInitialMessage(chatArea) {
+
+    const willkommensNachricht = "Hallo :)"
+
+    // Call createMessage with proper arguments
+    const [messageWrapper, messageElement] = createMessage(willkommensNachricht, "bot");
+    // Append elements to the chat area
+    chatArea.appendChild(messageWrapper);
+
+    // Save Bot Message
+    saveConversationToSessionStorage(willkommensNachricht, "bot");
+
+    chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+
+}
+
+// create Messages
+function createMessage(message, sender) {
+
+    const messageWrapper = document.createElement("div");
+    messageWrapper.style.margin = "5px 0";
+
+    const messageElement = document.createElement("div");
+    messageElement.innerText = message; // Set the message content
+    messageElement.style.padding = "10px";
+    messageElement.style.borderRadius = "15px";
+    messageElement.style.display = "inline-block";
+
+    if (sender === "user") {
+        messageWrapper.style.textAlign = "right";
+        messageElement.style.margin = "5px 0";
+        messageElement.style.backgroundColor = "#2463EB";
+        messageElement.style.color = "white";
+    } else {
+        // Create bot message structure
+        const botName = document.createElement("div");
+        botName.innerText = "Till-Eulenspiegel-Schule Mölln";
+        botName.style.fontWeight = "bold";
+        botName.style.marginBottom = "5px";
+        botName.style.textAlign = "left";
+        botName.style.color = "black";
+
+        messageWrapper.appendChild(botName);
+
+        messageElement.style.textAlign = "left";
+        messageElement.style.backgroundColor = "#F0F0F0";
+        messageElement.style.color = "black";
+
+    }
+
+    // Append the message element to the wrapper
+    messageWrapper.appendChild(messageElement);
+
+    return [messageWrapper, messageElement]
+
+}
 
 // Wait for the DOM to load
 document.addEventListener("DOMContentLoaded", () => {
@@ -155,8 +141,15 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally
     chatbotContainer.appendChild(chatArea);
 
+
     // Restore Messages
     loadConversationFromSessionStorage(chatArea);
+
+    // Check if there are existing messages in sessionStorage
+    const existingConversation = JSON.parse(sessionStorage.getItem("chatbotConversation")) || [];
+    if (existingConversation.length === 0) {
+        displayInitialMessage(chatArea);
+    }
 
     // Add input area
     const inputArea = document.createElement("div");
@@ -196,20 +189,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const userMessage = input.value.trim();
 
         if (userMessage) {
-            const userMessageWrapper = document.createElement("div");
-            userMessageWrapper.style.textAlign = "right";
 
-            const userMessageElement = document.createElement("div");
-            userMessageElement.innerText = userMessage;
-            userMessageElement.style.margin = "5px 0";
-            userMessageElement.style.backgroundColor = "#2463EB";
-            userMessageElement.style.color = "white";
-            userMessageElement.style.padding = "10px";
-            userMessageElement.style.borderRadius = "15px";
-            userMessageElement.style.display = "inline-block";
-
-            userMessageWrapper.appendChild(userMessageElement);
-            chatArea.appendChild(userMessageWrapper);
+            // Call createMessage with proper arguments
+            const [messageWrapper, messageElement] = createMessage(userMessage, "user");
+            // Append elements to the chat area
+            chatArea.appendChild(messageWrapper);
 
             // Save User Message
             saveConversationToSessionStorage(userMessage, "user");
@@ -225,28 +209,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.reply) {
-                        const botMessageWrapper = document.createElement("div");
-                        botMessageWrapper.style.margin = "10px 0";
 
-                        const botName = document.createElement("div");
-                        botName.innerText = "Till-Eulenspiegel-Schule Mölln";
-                        botName.style.fontWeight = "bold";
-                        botName.style.marginBottom = "5px";
-                        botName.style.textAlign = "left";
-                        botName.style.color = "black";
-
-                        const botMessage = document.createElement("div");
-                        botMessage.innerText = data.reply; // Ensure this is the correct property
-                        botMessage.style.textAlign = "left";
-                        botMessage.style.backgroundColor = "#F0F0F0";
-                        botMessage.style.color = "black";
-                        botMessage.style.padding = "10px";
-                        botMessage.style.borderRadius = "15px";
-                        botMessage.style.display = "inline-block";
-
-                        botMessageWrapper.appendChild(botName);
-                        botMessageWrapper.appendChild(botMessage);
-                        chatArea.appendChild(botMessageWrapper);
+                        // Call createMessage with proper arguments
+                        const [messageWrapper, messageElement] = createMessage(data.reply, "bot");
+                        // Append elements to the chat area
+                        chatArea.appendChild(messageWrapper);
 
                         // Save Bot Message
                         saveConversationToSessionStorage(data.reply, "bot");
