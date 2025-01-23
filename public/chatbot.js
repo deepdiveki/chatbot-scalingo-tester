@@ -11,18 +11,18 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         overlay.style.left = "0";
         overlay.style.width = "100%";
         overlay.style.height = "100%";
-        overlay.style.backgroundColor = "#F0F0F0";
+        overlay.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
         overlay.style.display = "flex";
         overlay.style.flexDirection = "column";
         overlay.style.alignItems = "center";
         overlay.style.justifyContent = "center";
-        overlay.style.zIndex = "1000";
+        overlay.style.zIndex = "2000";
 
         // Create the message content
         const message = document.createElement("div");
-        message.innerHTML = 'Willkommen zum Chatbot ABC! <br> Bitte akzeptieren Sie unsere <a href="https://example.com" target="_blank" style="color: "#2463EB"; text-decoration: underline;">Datenschutzrichtlinien</a>, wenn Sie den Chatbot nutzen wollen.';
-        message.style.color = "black";
-        message.style.fontSize = "18px";
+        message.innerHTML = 'Willkommen zum Chatbot TES Mölln! <br> Bitte akzeptieren Sie unsere <a href="https://example.com" target="_blank" style="color: #FF0000; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
+        message.style.color = "#000";
+        message.style.fontSize = "16px";
         message.style.textAlign = "center";
         message.style.marginBottom = "20px";
 
@@ -30,7 +30,7 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         const button = document.createElement("button");
         button.innerText = "Akzeptieren";
         button.style.padding = "10px 20px";
-        button.style.backgroundColor = "#2463EB";
+        button.style.backgroundColor = "#FF0000";   //Farbe des Buttons
         button.style.color = "white";
         button.style.border = "none";
         button.style.borderRadius = "5px";
@@ -90,7 +90,7 @@ function loadConversationFromSessionStorage(chatArea) {
 // Zeigt willkommensnachrichten an
 function displayInitialMessage(chatArea) {
 
-    const willkommensNachricht = "Hallo :)"
+    const willkommensNachricht = "Hier ist der Chatbot der Till-Eulenspiegel-Schule! Wie können wir dir helfen?";
 
     // Call createMessage with proper arguments
     const [messageWrapper, messageElement] = createMessage(willkommensNachricht, "bot");
@@ -104,37 +104,43 @@ function displayInitialMessage(chatArea) {
 
 }
 
-// Einstellungen für Message Design (Kreiert die nachrichten)
+// Einstellungen für Message Design (Kreiert die Nachrichten)
 function createMessage(message, sender) {
 
     const messageWrapper = document.createElement("div");
-    messageWrapper.style.margin = "5px 0";
+    messageWrapper.style.margin = "10px 0";
 
     const messageElement = document.createElement("div");
     messageElement.innerText = message; // Set the message content
     messageElement.style.padding = "10px";
-    messageElement.style.borderRadius = "15px";
-    messageElement.style.display = "inline-block";
+    messageElement.style.borderRadius = "12px";
+    messageWrapper.style.display = "flex";
+    messageElement.style.fontSize = "16px"; // Einheitliche Schriftgröße
+    messageElement.style.lineHeight = "1.5";
+    messageElement.style.maxWidth = "80%";
+    messageElement.style.boxShadow = "0px 2px 4px rgba(0, 0, 0, 0.1)";
 
     if (sender === "user") {
-        messageWrapper.style.textAlign = "right";
-        messageElement.style.margin = "5px 0";
-        messageElement.style.backgroundColor = "#2463EB";
+        messageWrapper.style.justifyContent = "flex-end";
+        messageElement.style.margin = "10px 0";
+        messageElement.style.backgroundColor = "#FF0000";
         messageElement.style.color = "white";
     } else {
         // Create bot message structure
-        const botName = document.createElement("div");
-        botName.innerText = "Till-Eulenspiegel-Schule Mölln";
-        botName.style.fontWeight = "bold";
-        botName.style.marginBottom = "5px";
-        botName.style.textAlign = "left";
-        botName.style.color = "black";
 
-        messageWrapper.appendChild(botName);
+        // Überschrift der BotßAntworten Nicht mehr benötigt?
+//        const botName = document.createElement("div");
+//        botName.innerText = "Till-Eulenspiegel-Schule Mölln";
+//        botName.style.fontWeight = "bold";
+//        botName.style.marginBottom = "5px";
+//        botName.style.textAlign = "left";
+//        botName.style.color = "black";
+//
+//        messageWrapper.appendChild(botName);
 
-        messageElement.style.textAlign = "left";
-        messageElement.style.backgroundColor = "#F0F0F0";
-        messageElement.style.color = "black";
+        messageWrapper.style.justifyContent = "flex-start";
+        messageElement.style.backgroundColor = "#FFF";
+        messageElement.style.color = "#000";
 
     }
 
@@ -150,18 +156,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create chatbot toggle button
     const toggleButton = document.createElement("button");
     toggleButton.id = "chat-toggle-button";
-    toggleButton.innerText = "ChatBot";
+    toggleButton.innerText = "Chatbot der Till-Eulenspiegel-Schule";
     toggleButton.style.position = "fixed";
     toggleButton.style.bottom = "20px";
     toggleButton.style.right = "20px";
-    toggleButton.style.backgroundColor = "#2463EB";
+    toggleButton.style.backgroundColor = "#FF0000";
     toggleButton.style.color = "white";
     toggleButton.style.border = "none";
     toggleButton.style.padding = "10px 20px";
-    toggleButton.style.borderRadius = "50px";
+    toggleButton.style.borderRadius = "30px";
     toggleButton.style.cursor = "pointer";
-    toggleButton.style.fontSize = "16px";
+    toggleButton.style.fontSize = "14px";
     toggleButton.style.zIndex = "1000";
+    toggleButton.style.boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)";
     document.body.appendChild(toggleButton);
 
     // Create chatbot container
@@ -170,34 +177,37 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.position = "fixed";
     chatbotContainer.style.bottom = "80px";
     chatbotContainer.style.right = "20px";
-    chatbotContainer.style.width = "400px";
-    chatbotContainer.style.height = "600px";
+    chatbotContainer.style.width = "350px";
+    chatbotContainer.style.height = "500px";
     chatbotContainer.style.border = "1px solid #ddd";
-    chatbotContainer.style.borderRadius = "10px";
-    chatbotContainer.style.backgroundColor = "white";
-    chatbotContainer.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+    chatbotContainer.style.borderRadius = "15px";
+    chatbotContainer.style.backgroundColor = "#f5f5f5"; // Leicht grauer Hintergrund
+    chatbotContainer.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.2)";
     chatbotContainer.style.overflow = "hidden";
     chatbotContainer.style.display = "none"; // Default hidden
     chatbotContainer.style.flexDirection = "column";
+    chatbotContainer.style.fontFamily = "Arial, sans-serif";
     document.body.appendChild(chatbotContainer);
 
     // Add header
     const header = document.createElement("div");
-    header.style.backgroundColor = "#2463EB";
+    header.style.backgroundColor = "rgba(255, 0, 0, 0.9)";
     header.style.color = "white";
-    header.style.padding = "10px";
+    header.style.padding = "15px";
     header.style.textAlign = "center";
     header.style.fontWeight = "bold";
-    header.innerText = "ChatBot TES Mölln";
+    header.style.fontSize = "16px";
+    header.style.borderBottom = "1px solid rgba(0, 0, 0, 0.1)";
+    header.innerText = "Chatbot der Till-Eulenspiegel-Schule";
     chatbotContainer.appendChild(header);
 
     // Add chat area
     const chatArea = document.createElement("div");
     chatArea.id = "chat-area";
     chatArea.style.flex = "1";
-    chatArea.style.padding = "10px";
+    chatArea.style.padding = "15px";
     chatArea.style.overflowY = "auto";
-    chatArea.style.fontFamily = "'Roboto', sans-serif"; // Apply Google Font globally
+    chatArea.style.backgroundColor = "#f9f9f9"; // Leicht grauer Hintergrund für den Dialogbereich
     chatbotContainer.appendChild(chatArea);
 
 
@@ -215,20 +225,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputArea = document.createElement("div");
     inputArea.style.display = "flex";
     inputArea.style.borderTop = "1px solid #ddd";
+    inputArea.style.backgroundColor = "#ffffff";
     const input = document.createElement("input");
     input.type = "text";
-    input.placeholder = "Stelle hier deine Frage auf Deutsch / Українська ...";
+    input.placeholder = "Stelle deine Frage hier...";
     input.style.flex = "1";
     input.style.border = "none";
     input.style.padding = "10px";
     input.style.outline = "none";
+
     const sendButton = document.createElement("button");
     sendButton.innerHTML = "&#10148;"; // Unicode for a right-pointing arrow (➤)
-    sendButton.style.backgroundColor = "#2463EB";
+    sendButton.style.backgroundColor = "#FF0000";
     sendButton.style.color = "white";
     sendButton.style.border = "none";
-    sendButton.style.padding = "10px";
+    sendButton.style.padding = "10px 15px";
     sendButton.style.cursor = "pointer";
+    sendButton.style.borderRadius = "5px";
     inputArea.appendChild(input);
     inputArea.appendChild(sendButton);
     chatbotContainer.appendChild(inputArea);
@@ -261,7 +274,8 @@ document.addEventListener("DOMContentLoaded", () => {
             input.value = "";
             chatArea.scrollTop = chatArea.scrollHeight;
 
-            fetch('https://tester.osc-fr1.scalingo.io/chat', {
+            //fetch('https://tester.osc-fr1.scalingo.io/chat', {
+            fetch('http://localhost:3000/chat', {   //für lokales testen
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userMessage }),

@@ -1,4 +1,4 @@
-//require('dotenv').config(); // read API Key
+require('dotenv').config(); // read API Key
 
 const axios = require('axios');
 const express = require('express');
