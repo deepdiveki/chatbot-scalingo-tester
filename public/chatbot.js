@@ -104,6 +104,48 @@ function displayInitialMessage(chatArea) {
 
 }
 
+// Function to preprocess markdown-like formatting to HTML
+function formatMessage(message) {
+    // Replace **text** with <b>text</b> for bold
+    message = message.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+    // Replace _text_ with <i>text</i> for italics
+    message = message.replace(/_(.*?)_/g, "<i>$1</i>");
+    // Replace line breaks (\n) with <br> for proper formatting
+    message = message.replace(/\n/g, "<br>");
+    // Replace links in the format "Description: [URL]"
+    message = message.replace(
+        /(.+?):\s*\[(https?:\/\/[^\s\]]+)\]/g,
+        '<a href="$2" target="_blank" style="color: #FF0000; text-decoration: underline;">$1</a>'
+    );
+    // Replace standalone URLs
+    message = message.replace(
+        /\b(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" style="color: #FF0000; text-decoration: underline;">$1</a>'
+    );
+    // Handle unordered lists (e.g., "- Item")
+    message = message.replace(
+        /(?:^|\n)- (.*?)(?=\n|$)/g,
+        (match, p1) => `<ul><li>${p1}</li></ul>`
+    );
+    // Handle numbered lists (e.g., "1. Item")
+    const numberedListRegex = /^(\d+\.\s)(.*)$/gm;
+    message = message.replace(
+        numberedListRegex,
+        (match, prefix, content) => `<li>${content}</li>`
+    );
+    // Wrap the numbered list with <ol> if items are found
+    if (message.includes("<li>")) {
+        message = message.replace(/(<li>.*<\/li>)/g, "<ol>$1</ol>");
+    }
+    // Replace triple backticks (```code```) with <pre><code> for code blocks
+    message = message.replace(/```(.*?)```/gs, "<pre><code>$1</code></pre>");
+    // Replace single backticks (`code`) with <code> for inline code
+    message = message.replace(/`([^`]+)`/g, "<code>$1</code>");
+    return message;
+}
+
+
+
 // Einstellungen für Message Design (Kreiert die Nachrichten)
 function createMessage(message, sender) {
 
@@ -111,7 +153,7 @@ function createMessage(message, sender) {
     messageWrapper.style.margin = "10px 0";
 
     const messageElement = document.createElement("div");
-    messageElement.innerText = message; // Set the message content
+    messageElement.innerHTML = formatMessage(message); // Use innerHTML instead of innerText
     messageElement.style.padding = "10px";
     messageElement.style.borderRadius = "12px";
     messageWrapper.style.display = "flex";
@@ -274,8 +316,8 @@ document.addEventListener("DOMContentLoaded", () => {
             input.value = "";
             chatArea.scrollTop = chatArea.scrollHeight;
 
-            //fetch('https://tester.osc-fr1.scalingo.io/chat', {
-            fetch('http://localhost:3000/chat', {   //für lokales testen
+            fetch('https://tester.osc-fr1.scalingo.io/chat', {
+            //fetch('http://localhost:3001/chat', {   //für lokales testen
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userMessage }),
