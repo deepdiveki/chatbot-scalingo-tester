@@ -87,6 +87,49 @@ function loadConversationFromSessionStorage(chatArea) {
     chatArea.scrollTop = chatArea.scrollHeight;
 }
 
+function addTypingIndicator(chatArea) {
+    // Create a typing wrapper
+    const typingWrapper = document.createElement("div");
+    typingWrapper.id = "typing-indicator-wrapper";
+    typingWrapper.style.display = "flex";
+    typingWrapper.style.justifyContent = "flex-start"; // Align to left like a bot message
+    typingWrapper.style.marginTop = "10px";
+
+    // Create the bubble around the dots
+    const bubble = document.createElement("div");
+    bubble.style.padding = "15px 10px";
+    bubble.style.borderRadius = "12px";
+    bubble.style.backgroundColor = "#FFF";
+    bubble.style.boxShadow = "0px 2px 4px rgba(0, 0, 0, 0.1)";
+    bubble.style.display = "flex";
+    bubble.style.justifyContent = "center";
+    bubble.style.alignItems = "center";
+
+    // Add animated dots
+    for (let i = 0; i < 3; i++) {
+        const dot = document.createElement("div");
+        dot.style.width = "8px";
+        dot.style.height = "8px";
+        dot.style.margin = "0 4px";
+        dot.style.borderRadius = "50%";
+        dot.style.backgroundColor = "#aaa";
+        dot.style.animation = `typing 1.5s infinite ease-in-out`;
+        dot.style.animationDelay = `${i * 0.2}s`; // Delay each dot's animation
+        bubble.appendChild(dot);
+    }
+
+    typingWrapper.appendChild(bubble);
+    chatArea.appendChild(typingWrapper);
+    chatArea.scrollTop = chatArea.scrollHeight; // Scroll to the bottom
+}
+
+function removeTypingIndicator(chatArea) {
+    const typingWrapper = document.getElementById("typing-indicator-wrapper");
+    if (typingWrapper) {
+        typingWrapper.remove();
+    }
+}
+
 // Zeigt willkommensnachrichten an
 function displayInitialMessage(chatArea) {
 
@@ -316,6 +359,8 @@ document.addEventListener("DOMContentLoaded", () => {
             input.value = "";
             chatArea.scrollTop = chatArea.scrollHeight;
 
+            addTypingIndicator(chatArea);
+
             fetch('https://tester.osc-fr1.scalingo.io/chat', {
             //fetch('http://localhost:3001/chat', {   //für lokales testen
                 method: 'POST',
@@ -324,6 +369,8 @@ document.addEventListener("DOMContentLoaded", () => {
             })
                 .then(response => response.json())
                 .then(data => {
+
+                    removeTypingIndicator(chatArea);
                     if (data && data.reply) {
 
                         // Call createMessage with proper arguments
