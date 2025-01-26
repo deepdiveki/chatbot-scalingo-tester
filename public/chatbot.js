@@ -20,7 +20,7 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
 
         // Create the message content
         const message = document.createElement("div");
-        message.innerHTML = 'Willkommen zum Chatbot TES Mölln! <br> Bitte akzeptieren Sie unsere <a href="https://example.com" target="_blank" style="color: #FF0000; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
+        message.innerHTML = 'Willkommen zum Chatbot TES Mölln! <br> Bitte akzeptieren Sie unsere <a href="https://till-eulenspiegel-schule.lernnetz.de/datenschutz.html" target="_blank" style="color: #FF0000; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
         message.style.color = "#000";
         message.style.fontSize = "16px";
         message.style.textAlign = "center";
