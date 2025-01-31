@@ -187,7 +187,12 @@ function formatMessage(message) {
     return message;
 }
 
-
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 // Einstellungen für Message Design (Kreiert die Nachrichten)
 function createMessage(message, sender) {
@@ -235,6 +240,9 @@ function createMessage(message, sender) {
     return [messageWrapper, messageElement]
 
 }
+
+const sessionID = sessionStorage.getItem('sessionID') || generateUUID();
+sessionStorage.setItem('sessionID', sessionID);
 
 // Wait for the DOM to load
 document.addEventListener("DOMContentLoaded", () => {
@@ -365,7 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
             //fetch('http://localhost:3001/chat', {   //für lokales testen
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({ sessionID: sessionID, message: userMessage }),
             })
                 .then(response => response.json())
                 .then(data => {
