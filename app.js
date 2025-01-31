@@ -7,7 +7,6 @@ const path = require("path");
 const { readFileSync } = require('fs');
 const { Document, Packer } = require('docx');
 const mammoth = require('mammoth');
-//const spellchecker = require('spellchecker');
 
 const app = express();
 
@@ -56,18 +55,6 @@ const cosineSimilarity = (vecA, vecB) => {
 
 const preprocessText = (text) => text.toLowerCase().replace(/[^\w\s]/g, '');
 
-function correctSpelling(input) {
-    const words = input.split(" ");
-    const correctedWords = words.map(word => {
-        if (spellchecker.isMisspelled(word)) {
-            // Vorschlag für falsch geschriebene Wörter holen
-            const suggestions = spellchecker.getCorrectionsForMisspelling(word);
-            return suggestions.length > 0 ? suggestions[0] : word;
-        }
-        return word;
-    });
-    return correctedWords.join(" ");
-}
 
 // Function to find the most relevant chunks
 const findRelevantChunks = async (userQuery, chunks, topK = 3) => {
@@ -133,12 +120,51 @@ app.post('/chat', async (req, res) => {
         // Find the most relevant chunks for the user query
         const relevantChunks = await findRelevantChunks(userMessage, docChunks);
 
-        // Check if relevant chunks are found
-        if (!relevantChunks || relevantChunks.length === 0) {
-            console.error("No relevant chunks were found for the user query.");
-            return res.status(500).json({ reply: "Leider habe ich keine passenden Informationen zu Ihrer Anfrage gefunden. Schreiben Sie uns gerne eine Email mit Ihrer Anfrage an: till-eulenspiegel-schule.moelln@schule.landsh.de" });
+//        // Check if relevant chunks are found
+//        if (!relevantChunks || relevantChunks.length === 0) {
+//            console.error("No relevant chunks were found for the user query.");
+//
+//            const reformulationPrompt = `
+//You are an expert in improving and reformulating user queries.
+//Rephrase the following message to make it clearer and more specific:
+//
+//Message: "${userMessage}"
+//Instructions: Make the message concise and structured while keeping the original meaning intact.
+//`;
+//            // Call GPT API to reformulate the message
+//            const reformulateResponse = await axios.post(
+//                'https://api.openai.com/v1/chat/completions',
+//                {
+//                    model: 'gpt-4o-mini',
+//                    messages: [
+//                        { role: 'system', content: reformulationPrompt },
+//                        { role: 'user', content: userMessage },
+//                    ],
+//                    max_tokens: 100,
+//                },
+//                {
+//                    headers: {
+//                        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+//                        'Content-Type': 'application/json',
+//                    },
+//                }
+//            );
+//
+//            const reformulatedMessage = reformulateResponse.data.choices[0].message.content;
+//
+//            // Try finding relevant chunks for the reformulated message
+//            relevantChunks = await findRelevantChunks(reformulatedMessage, docChunks);
+
+            if (!relevantChunks || relevantChunks.length === 0) {
+                console.error("No relevant chunks found after reformulating the query.");
+                return res.status(500).json({ reply: "Leider habe ich keine passenden Informationen zu Ihrer Anfrage gefunden. Schreiben Sie uns gerne eine Email mit Ihrer Anfrage an: till-eulenspiegel-schule.moelln@schule.landsh.de" });
+            //}
+
+            // Update the user's message with the reformulated version for further processing
+            //userMessage = reformulatedMessage;
+
         } else {
-            //console.log("Relevant Chunks for the Query:", relevantChunks);
+            console.log("Relevant Chunks for the Query:", relevantChunks);
         }
 
         // Construct the system prompt
@@ -182,7 +208,7 @@ Be polite, professional, and concise, but ensure you provide all necessary detai
 
         // Extract the bot's reply from the API response
         const botResponse = gptResponse.data.choices[0].message.content;
-        console.log('Response sent to client:', botResponse);
+        //console.log('Response sent to client:', botResponse);
 
         // Send the response to the user
         res.json({ reply: botResponse });
