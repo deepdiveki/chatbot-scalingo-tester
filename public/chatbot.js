@@ -88,6 +88,7 @@ function loadConversationFromSessionStorage(chatArea) {
 }
 
 function addTypingIndicator(chatArea) {
+
     // Create a typing wrapper
     const typingWrapper = document.createElement("div");
     typingWrapper.id = "typing-indicator-wrapper";
@@ -128,6 +129,9 @@ function removeTypingIndicator(chatArea) {
     if (typingWrapper) {
         typingWrapper.remove();
     }
+
+    //sendButton.disabled = false;
+    //sendButton.style.cursor = "pointer";
 }
 
 // Zeigt willkommensnachrichten an
@@ -187,12 +191,6 @@ function formatMessage(message) {
     return message;
 }
 
-function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
 
 // Einstellungen für Message Design (Kreiert die Nachrichten)
 function createMessage(message, sender) {
@@ -240,9 +238,6 @@ function createMessage(message, sender) {
     return [messageWrapper, messageElement]
 
 }
-
-const sessionID = sessionStorage.getItem('sessionID') || generateUUID();
-sessionStorage.setItem('sessionID', sessionID);
 
 // Wait for the DOM to load
 document.addEventListener("DOMContentLoaded", () => {
@@ -367,13 +362,17 @@ document.addEventListener("DOMContentLoaded", () => {
             input.value = "";
             chatArea.scrollTop = chatArea.scrollHeight;
 
+            // started nice punkte-lade-animation
             addTypingIndicator(chatArea);
+
+            // stop sending new msgs
+            sendButton.disabled = true;
 
             fetch('https://tester.osc-fr1.scalingo.io/chat', {
             //fetch('http://localhost:3001/chat', {   //für lokales testen
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionID: sessionID, message: userMessage }),
+                body: JSON.stringify({ message: userMessage }),
             })
                 .then(response => response.json())
                 .then(data => {
@@ -381,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     removeTypingIndicator(chatArea);
                     if (data && data.reply) {
 
-                        // Call createMessage with proper arguments
+                        // Call createMessage
                         const [messageWrapper, messageElement] = createMessage(data.reply, "bot");
                         // Append elements to the chat area
                         chatArea.appendChild(messageWrapper);
@@ -393,6 +392,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     } else {
                         console.error("Invalid response format:", data);
                     }
+
+                    // wieder erlauben nächste nachricht zu schicken
+                    sendButton.disabled = false;
                 })
         }
     });

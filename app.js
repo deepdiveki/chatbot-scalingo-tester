@@ -122,17 +122,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Chatbot route
 app.post('/chat', async (req, res) => {
-    //const userMessage = req.body.message;
+    const userMessage = req.body.message;
     //userMessage = correctSpelling(userMessage);
 
-    const { sessionID, message: userMessage } = req.body;
-
-    // Validate the input
-    if (!sessionID || !userMessage) {
-        return res.status(400).json({ reply: "Invalid request. Missing session ID or message." });
+    if (!userMessage) {
+        return res.status(400).json({ reply: "I didn't receive a message!" });
     }
-
-    console.log(`Received message from session ID: ${sessionID}`);
 
     try {
         // Find the most relevant chunks for the user query
@@ -178,7 +173,6 @@ Always reference this information when responding. If the question cannot be ans
 
         // Extract the bot's reply from the API response
         const botResponse = gptResponse.data.choices[0].message.content;
-        console.log(`Response for session ${sessionID}:`, botResponse);
 
         // Send the response to the user
         res.json({ reply: botResponse });
