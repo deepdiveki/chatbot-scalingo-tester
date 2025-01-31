@@ -87,6 +87,13 @@ function loadConversationFromSessionStorage(chatArea) {
     chatArea.scrollTop = chatArea.scrollHeight;
 }
 
+// Load last X msgs so it "remembers" what happend before
+function getLastMessages(count) {
+    const conversation = JSON.parse(sessionStorage.getItem('chatbotConversation')) || [];
+    const userMessages = conversation.filter(msg => msg.sender === 'user').slice(-count);
+    return userMessages.map(msg => msg.message);
+}
+
 function addTypingIndicator(chatArea) {
 
     // Create a typing wrapper
@@ -129,9 +136,6 @@ function removeTypingIndicator(chatArea) {
     if (typingWrapper) {
         typingWrapper.remove();
     }
-
-    //sendButton.disabled = false;
-    //sendButton.style.cursor = "pointer";
 }
 
 // Zeigt willkommensnachrichten an
@@ -368,11 +372,15 @@ document.addEventListener("DOMContentLoaded", () => {
             // stop sending new msgs
             sendButton.disabled = true;
 
+            // Retrieve the last 3 user messages from session storage
+            const lastMessages = getLastMessages(3);
+            const memory = `${lastMessages.join('; ')}`;
+
             fetch('https://tester.osc-fr1.scalingo.io/chat', {
             //fetch('http://localhost:3001/chat', {   //für lokales testen
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({ message: userMessage, memory: memory }),
             })
                 .then(response => response.json())
                 .then(data => {

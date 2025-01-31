@@ -95,7 +95,7 @@ const findRelevantChunks = async (userQuery, chunks, topK = 3) => {
     try {
         const filePath = 'output.docx'; // Your .docx file
         docChunks = await extractTextFromDocx(filePath); // Extract chunks
-        console.log("Document Chunks:", docChunks); // Verify the chunks
+        //console.log("Document Chunks:", docChunks); // Verify the chunks
         console.log("Document content loaded and split into chunks.");
 
         // Start the server
@@ -122,7 +122,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Chatbot route
 app.post('/chat', async (req, res) => {
-    const userMessage = req.body.message;
+    const { message: userMessage, memory } = req.body;
     //userMessage = correctSpelling(userMessage);
 
     if (!userMessage) {
@@ -138,19 +138,28 @@ app.post('/chat', async (req, res) => {
             console.error("No relevant chunks were found for the user query.");
             return res.status(500).json({ reply: "Leider habe ich keine passenden Informationen zu Ihrer Anfrage gefunden. Schreiben Sie uns gerne eine Email mit Ihrer Anfrage an: till-eulenspiegel-schule.moelln@schule.landsh.de" });
         } else {
-            console.log("Relevant Chunks for the Query:", relevantChunks);
+            //console.log("Relevant Chunks for the Query:", relevantChunks);
         }
 
         // Construct the system prompt
         const systemPrompt = `
 You are an expert assistant for answering questions about the Grundschule Mölln.
-Use the provided information to answer user queries in detail.
-Below is the relevant information:
+Your goal is to provide detailed, helpful, and accurate responses based on the provided information and the user's previous messages.
 
+### Relevant Information:
 ${relevantChunks.join('\n\n')}
 
-Always reference this information when responding. If the question cannot be answered with the provided information, explain, that you could not find an answer and ask if there is any thing else, where you could possibly help.
-`;
+### User's Message History:
+If applicable, here are the user's last messages for reference:
+${memory}
+
+### Instructions:
+1. Always use the relevant information above when answering the query.
+2. If the user has made specific requests (e.g., responding in a different language), follow those instructions consistently.
+3. If the user references previous inputs, use the listed message history to provide accurate and contextual answers.
+4. If the user's question cannot be answered with the provided information, respond politely by explaining that no relevant data is available. Offer further assistance or suggest the user contact the school for more details.
+
+Be polite, professional, and concise, but ensure you provide all necessary details.`;
 
         // Call OpenAI GPT API
         const gptResponse = await axios.post(
@@ -173,6 +182,7 @@ Always reference this information when responding. If the question cannot be ans
 
         // Extract the bot's reply from the API response
         const botResponse = gptResponse.data.choices[0].message.content;
+        console.log('Response sent to client:', botResponse);
 
         // Send the response to the user
         res.json({ reply: botResponse });
