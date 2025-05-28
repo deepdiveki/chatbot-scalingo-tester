@@ -21,7 +21,7 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
 
         // Create the message content
         const message = document.createElement("div");
-        message.innerHTML = 'Willkommen zum Chatbot TES Mölln! <br> Bitte akzeptieren Sie unsere <a href="https://till-eulenspiegel-schule.lernnetz.de/datenschutz.html" target="_blank" style="color: #ff6a00; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
+        message.innerHTML = 'Willkommen zum Chatbot des Gymnasium Alster! <br> Bitte akzeptieren Sie unsere <a href="https://www.deepdive-ki.de/datenschutz" target="_blank" style="color: #7f56d9; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
         message.style.color = "#000";
         message.style.fontSize = "16px";
         message.style.textAlign = "center";
@@ -31,8 +31,8 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         const button = document.createElement("button");
         button.innerText = "Akzeptieren";
         button.style.padding = "12px 24px";
-        button.style.background = "linear-gradient(145deg, #ff7a18, #ff6a00)";
-        button.style.boxShadow = "0 4px 10px rgba(255, 106, 0, 0.4)";
+        button.style.background = "linear-gradient(145deg, #8b5cf6, #7f56d9)";
+        button.style.boxShadow = "0 4px 10px rgba(127, 86, 217, 0.4)";
         button.style.transition = "all 0.2s ease-in-out";
         button.style.color = "white";
         button.style.border = "none";
@@ -42,11 +42,11 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         button.style.cursor = "pointer";
         button.addEventListener("mouseenter", () => {
             button.style.transform = "scale(1.05)";
-            button.style.boxShadow = "0 6px 14px rgba(255, 106, 0, 0.6)";
+            button.style.boxShadow = "0 6px 14px rgba(127, 86, 217, 0.6)";
         });
         button.addEventListener("mouseleave", () => {
             button.style.transform = "scale(1)";
-            button.style.boxShadow = "0 4px 10px rgba(255, 106, 0, 0.4)";
+            button.style.boxShadow = "0 4px 10px rgba(127, 86, 217, 0.4)";
         });
 
         // Append the message and button to the overlay
@@ -74,8 +74,9 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
             welcomeScreen.style.fontSize = "20px";
             welcomeScreen.style.fontWeight = "bold";
             welcomeScreen.innerHTML = `
-                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="Avatar" style="width:60px;height:60px;margin-bottom:16px;" />
-                Hallo, willkommen!<br>Wie können wir helfen?
+                <img src="deepdiveki-logo.svg" alt="Avatar" style="width:60px;height:60px;margin-bottom:16px;" />
+                <div style="font-size: 20px; font-weight: bold; color: #1a1a1a;">Hallo, willkommen am Gymnasium Alster!</div>
+                <div style="font-size: 16px; color: #333; margin-top: 8px;">Wie können wir helfen?</div>
             `;
 
             const chatArea = document.getElementById("chat-area");
@@ -192,7 +193,7 @@ function removeTypingIndicator(chatArea) {
 // Zeigt willkommensnachrichten an
 function displayInitialMessage(chatArea) {
 
-    const willkommensNachricht = "Hier ist der Chatbot der Till-Eulenspiegel-Schule! Wie können wir dir helfen?";
+    const willkommensNachricht = "Hier ist der Chatbot des Gymnasium Alster! Wie können wir dir helfen?";
 
     // Call createMessage with proper arguments
     const [messageWrapper, messageElement] = createMessage(willkommensNachricht, "bot");
@@ -263,7 +264,7 @@ function createMessage(message, sender) {
     if (sender === "user") {
         // User-Nachricht Stil (Fin-ähnlich)
         messageWrapper.style.justifyContent = "flex-end";
-        messageElement.style.background = "linear-gradient(145deg, rgba(255,122,24,0.75), rgba(255,106,0,0.75))";
+        messageElement.style.background = "linear-gradient(145deg, #d946ef, #9333ea)";
         messageElement.style.borderRadius = "20px";
         messageElement.style.padding = "14px 18px";
         messageElement.style.fontSize = "15px";
@@ -273,19 +274,19 @@ function createMessage(message, sender) {
         messageElement.style.display = "flex";
         messageElement.style.flexDirection = "column";
         // Entferne harte Ränder durch weicheren Border
-        messageElement.style.border = "1px solid rgba(224,224,224,0.7)";
+        messageElement.style.border = "1px solid #9333ea";
         messageWrapper.appendChild(messageElement);
     } else {
         // Bot-Nachricht Stil mit modernen Fin-ähnlichen Upgrades
         messageWrapper.style.justifyContent = "flex-start";
         // Optische Upgrades für modernes Design
-        messageElement.style.background = "linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(247,247,248,0.5))";
-        messageElement.style.border = "1px solid rgba(224,224,224,0.7)";
-        messageElement.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.08)";
+        messageElement.style.background = "rgba(243, 232, 255, 0.6)";
+        messageElement.style.border = "1px solid #a78bfa";
+        messageElement.style.boxShadow = "0 3px 10px rgba(127, 86, 217, 0.15)";
         messageElement.style.borderRadius = "16px";
         messageElement.style.padding = "16px 20px";
         messageElement.style.fontSize = "15px";
-        messageElement.style.color = "#333";
+        messageElement.style.color = "#1a1a1a";
         messageElement.style.fontFamily = "'Helvetica Neue', sans-serif";
         messageElement.style.position = "relative";
         messageElement.style.display = "flex";
@@ -298,7 +299,7 @@ function createMessage(message, sender) {
         botMetaRow.style.marginLeft = "14px";
 
         const botAvatar = document.createElement("img");
-        botAvatar.src = "https://cdn-icons-png.flaticon.com/512/4712/4712027.png";
+        botAvatar.src = "deepdiveki-logo.svg";
         botAvatar.alt = "Bot Avatar";
         botAvatar.style.width = "20px";
         botAvatar.style.height = "20px";
@@ -308,7 +309,7 @@ function createMessage(message, sender) {
         const botName = document.createElement("div");
         botName.innerText = "KI-Schulbüro";
         botName.style.fontSize = "12px";
-        botName.style.color = "#555";
+        botName.style.color = "#000";
         botName.style.fontWeight = "bold";
         botName.style.marginTop = "2px";
 
@@ -328,7 +329,7 @@ function createMessage(message, sender) {
         if (message.includes("Sources:")) {
             const sourcesSection = document.createElement("div");
             sourcesSection.style.marginTop = "12px";
-            sourcesSection.style.borderTop = "1px solid #ddd";
+            sourcesSection.style.borderTop = "1px solid #6d28d9";
             sourcesSection.style.paddingTop = "8px";
 
             const title = document.createElement("div");
@@ -336,7 +337,7 @@ function createMessage(message, sender) {
             title.style.fontWeight = "bold";
             title.style.fontSize = "13px";
             title.style.marginBottom = "4px";
-            title.style.color = "#333";
+            title.style.color = "#bdb7e4";
 
             sourcesSection.appendChild(title);
 
@@ -345,7 +346,7 @@ function createMessage(message, sender) {
                 links.forEach(linkMatch => {
                     const url = linkMatch.slice(1, -1);
                     const item = document.createElement("div");
-                    item.innerHTML = `&#10148; <a href="${url}" target="_blank" style="color: #FF6A00; text-decoration: underline;">${url}</a>`;
+                    item.innerHTML = `&#10148; <a href="${url}" target="_blank" style="color: #9333ea; text-decoration: underline;">${url}</a>`;
                     item.style.fontSize = "13px";
                     item.style.marginBottom = "2px";
                     sourcesSection.appendChild(item);
@@ -365,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleButton.id = "chat-toggle-button";
     // Replace text with icon for minimalist design
     const chatIcon = document.createElement("img");
-    chatIcon.src = "https://cdn-icons-png.flaticon.com/512/4712/4712027.png";
+    chatIcon.src = "ddki logo weiß.svg";
     chatIcon.alt = "Chatbot";
     chatIcon.style.width = "24px";
     chatIcon.style.height = "24px";
@@ -384,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleButton.style.position = "fixed";
     toggleButton.style.bottom = "20px";
     toggleButton.style.right = "20px";
-    toggleButton.style.backgroundColor = "#ff7a18";
+    toggleButton.style.backgroundColor = "#8b5cf6";
     toggleButton.style.color = "#fff";
     toggleButton.style.border = "none";
     toggleButton.style.padding = "10px 20px";
@@ -397,7 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Hover-Effekt für den Toggle-Button
     toggleButton.addEventListener("mouseenter", () => {
         toggleButton.style.transform = "scale(1.1)";
-        toggleButton.style.boxShadow = "0 0 12px #ff7a18";
+        toggleButton.style.boxShadow = "0 0 12px #8b5cf6";
     });
     toggleButton.addEventListener("mouseleave", () => {
         toggleButton.style.transform = "scale(1)";
@@ -413,18 +414,19 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.right = "20px";
     chatbotContainer.style.width = "420px";
     chatbotContainer.style.height = "600px";
-    chatbotContainer.style.background = "linear-gradient(to top, #FFECD2, #FCB69F)";
-    chatbotContainer.style.border = "none";
+    chatbotContainer.style.background = "linear-gradient(to top, #e8d0ff, #caa5ff)";
+    chatbotContainer.style.border = "6px solid rgba(255, 255, 255, 0.6)";
     chatbotContainer.style.borderRadius = "20px";
     chatbotContainer.style.backdropFilter = "blur(10px)";
     // Moderner, weicher weißer Rahmen und extra Schatten (verstärkt, noch breiter)
-    chatbotContainer.style.outline = "6px solid rgba(255, 255, 255, 0.6)";
-    chatbotContainer.style.outlineOffset = "-6px";
-    chatbotContainer.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.2), 0 0 0 9px rgba(255, 255, 255, 0.6)";
+    // chatbotContainer.style.outline = "6px solid rgba(255, 255, 255, 0.6)";
+    // chatbotContainer.style.outlineOffset = "-6px";
+    chatbotContainer.style.boxShadow = "none";
     chatbotContainer.style.overflow = "hidden";
     chatbotContainer.style.display = "none"; // Default hidden
     chatbotContainer.style.flexDirection = "column";
     chatbotContainer.style.fontFamily = "Arial, sans-serif";
+    // Optional: outline und outlineOffset bewusst deaktiviert/dezent gelassen
     document.body.appendChild(chatbotContainer);
 
     // Add header
@@ -435,21 +437,21 @@ document.addEventListener("DOMContentLoaded", () => {
     header.style.padding = "12px 16px";
     header.style.backgroundColor = "#ffffff";
     header.style.borderBottom = "1px solid #eee";
-
-    const logo = document.createElement("img");
-    logo.src = "https://cdn-icons-png.flaticon.com/512/4712/4712027.png";
-    logo.alt = "Bot Avatar";
-    logo.style.width = "28px";
-    logo.style.height = "28px";
-    logo.style.borderRadius = "50%";
-    logo.style.marginRight = "10px";
+    // Removed logo image element
+    // const logo = document.createElement("img");
+    // logo.src = "ddki logo weiß.svg";
+    // logo.alt = "Bot Avatar";
+    // logo.style.width = "28px";
+    // logo.style.height = "28px";
+    // logo.style.borderRadius = "50%";
+    // logo.style.marginRight = "10px";
 
     const title = document.createElement("div");
-    title.innerHTML = `<strong>DDKI</strong> · Das KI-Schulbüro`;
+    title.innerHTML = `<strong>Gymnasium Alster</strong> · Das KI-Schulbüro`;
     title.style.fontSize = "15px";
     title.style.color = "#333";
 
-    header.appendChild(logo);
+    // header.appendChild(logo);
     header.appendChild(title);
     chatbotContainer.appendChild(header);
 
@@ -459,7 +461,8 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.flex = "1";
     chatArea.style.padding = "15px";
     chatArea.style.overflowY = "auto";
-    chatbotContainer.style.background = "linear-gradient(to bottom, #ffffff, #fbe8dc)";
+    chatbotContainer.style.background = "linear-gradient(to bottom right, #f8f0ff, #d4b5ff)";
+    chatbotContainer.style.color = "#ffffff";
     // Ensure chatArea is positioned relative for overlay fade
     chatArea.style.position = "relative";
     chatbotContainer.appendChild(chatArea);
@@ -492,7 +495,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add input area
     const inputArea = document.createElement("div");
-    // Keine visuelle Trennung: transparent, keine Box-Shadow, keine Border-Top
     inputArea.style.background = "transparent";
     inputArea.style.padding = "12px 20px 20px 20px";
     inputArea.style.display = "flex";
@@ -501,13 +503,11 @@ document.addEventListener("DOMContentLoaded", () => {
     inputArea.style.boxShadow = "none";
     inputArea.style.borderTop = "none";
 
-    // Create the input bar wrapper for the input and button
     const inputBar = document.createElement("div");
     inputBar.style.display = "flex";
     inputBar.style.alignItems = "center";
     inputBar.style.backgroundColor = "#ffffff";
     inputBar.style.borderRadius = "20px";
-    // Neuer weicher Doppelrahmen mit Schimmer
     inputBar.style.border = "1px solid rgba(255, 255, 255, 0.6)";
     inputBar.style.boxShadow = "0 1px 4px rgba(0,0,0,0.1), 0 0 0 4px rgba(255, 255, 255, 0.6)";
     inputBar.style.padding = "6px 12px";
@@ -515,7 +515,6 @@ document.addEventListener("DOMContentLoaded", () => {
     inputBar.style.maxWidth = "100%";
     inputBar.style.position = "relative";
 
-    // Input field
     const input = document.createElement("input");
     input.type = "text";
     input.style.flex = "1";
@@ -529,7 +528,6 @@ document.addEventListener("DOMContentLoaded", () => {
     input.style.margin = "0";
     input.placeholder = "Schulbüro antworten...";
 
-    // Send button
     const sendButton = document.createElement("button");
     sendButton.innerHTML = "&#10148;";
     sendButton.style.position = "absolute";
@@ -540,18 +538,16 @@ document.addEventListener("DOMContentLoaded", () => {
     sendButton.style.height = "32px";
     sendButton.style.border = "none";
     sendButton.style.borderRadius = "50%";
-    sendButton.style.backgroundColor = "#FF6A00";
+    sendButton.style.backgroundColor = "#7f56d9";
     sendButton.style.color = "#fff";
     sendButton.style.display = "flex";
     sendButton.style.alignItems = "center";
     sendButton.style.justifyContent = "center";
     sendButton.style.fontSize = "14px";
     sendButton.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-    // Initial: Deaktiviert-Stil
     sendButton.style.opacity = "0.5";
     sendButton.style.cursor = "default";
 
-    // Put input and button into the bar, then bar into area
     inputBar.appendChild(input);
     inputBar.appendChild(sendButton);
     inputArea.appendChild(inputBar);
@@ -638,7 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Interaktive Steuerung des Sendebuttons basierend auf Texteingabe
     input.addEventListener("input", () => {
         const isNotEmpty = input.value.trim().length > 0;
-        sendButton.style.backgroundColor = isNotEmpty ? "#FF6A00" : "#ccc";
+        sendButton.style.backgroundColor = isNotEmpty ? "#7f56d9" : "#ccc";
         sendButton.style.opacity = isNotEmpty ? "1" : "0.5";
         sendButton.style.cursor = isNotEmpty ? "pointer" : "default";
     });

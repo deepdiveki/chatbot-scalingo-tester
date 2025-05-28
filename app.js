@@ -97,7 +97,7 @@ const findRelevantChunks = async (userQuery, chunks, topK = 3) => {
 })();
 
 
-//const systemPrompt = `Fragen zur Grundschule Mölln beantworten. Beziehe dich dabei auf Informationen: ${docContent}`;
+//const systemPrompt = `Fragen zum Gymnasium Alster beantworten. Beziehe dich dabei auf Informationen: ${docContent}`;
 
 
 // Middleware to parse JSON request bodies and handle CORS
@@ -157,7 +157,7 @@ app.post('/chat', async (req, res) => {
 
             if (!relevantChunks || relevantChunks.length === 0) {
                 console.error("No relevant chunks found after reformulating the query.");
-                return res.status(500).json({ reply: "Leider habe ich keine passenden Informationen zu Ihrer Anfrage gefunden. Schreiben Sie uns gerne eine Email mit Ihrer Anfrage an: till-eulenspiegel-schule.moelln@schule.landsh.de" });
+                return res.status(500).json({ reply: "Leider habe ich keine passenden Informationen zu Ihrer Anfrage gefunden. Schreiben Sie uns gerne eine Email mit Ihrer Anfrage an: info@deepdive-ki.de" });
             //}
 
             // Update the user's message with the reformulated version for further processing
@@ -169,7 +169,7 @@ app.post('/chat', async (req, res) => {
 
         // Construct the system prompt
         const systemPrompt = `
-You are an expert assistant for answering questions about the Grundschule Mölln.
+You are an expert assistant for answering questions about the Gymnasium Alster.
 Your goal is to provide detailed, helpful, and accurate responses based on the provided information and the user's previous messages.
 
 ### Relevant Information:
