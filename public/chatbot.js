@@ -17,10 +17,11 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         overlay.style.alignItems = "center";
         overlay.style.justifyContent = "center";
         overlay.style.zIndex = "2000";
+        overlay.style.fontFamily = "Arial, sans-serif";
 
         // Create the message content
         const message = document.createElement("div");
-        message.innerHTML = 'Willkommen zum Chatbot TES Mölln! <br> Bitte akzeptieren Sie unsere <a href="https://till-eulenspiegel-schule.lernnetz.de/datenschutz.html" target="_blank" style="color: #FF0000; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
+        message.innerHTML = 'Willkommen zum Chatbot TES Mölln! <br> Bitte akzeptieren Sie unsere <a href="https://till-eulenspiegel-schule.lernnetz.de/datenschutz.html" target="_blank" style="color: #ff6a00; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
         message.style.color = "#000";
         message.style.fontSize = "16px";
         message.style.textAlign = "center";
@@ -29,21 +30,23 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         // Create the dismiss button
         const button = document.createElement("button");
         button.innerText = "Akzeptieren";
-        button.style.padding = "10px 20px";
-        button.style.backgroundColor = "#FF6A00";
-        button.style.boxShadow = "0 0 10px rgba(255, 106, 0, 0.4)";
+        button.style.padding = "12px 24px";
+        button.style.background = "linear-gradient(145deg, #ff7a18, #ff6a00)";
+        button.style.boxShadow = "0 4px 10px rgba(255, 106, 0, 0.4)";
         button.style.transition = "all 0.2s ease-in-out";
         button.style.color = "white";
         button.style.border = "none";
-        button.style.borderRadius = "5px";
+        button.style.borderRadius = "30px";
+        button.style.fontSize = "16px";
+        button.style.fontWeight = "bold";
         button.style.cursor = "pointer";
         button.addEventListener("mouseenter", () => {
             button.style.transform = "scale(1.05)";
-            button.style.boxShadow = "0 0 14px rgba(255, 106, 0, 0.6)";
+            button.style.boxShadow = "0 6px 14px rgba(255, 106, 0, 0.6)";
         });
         button.addEventListener("mouseleave", () => {
             button.style.transform = "scale(1)";
-            button.style.boxShadow = "0 0 10px rgba(255, 106, 0, 0.4)";
+            button.style.boxShadow = "0 4px 10px rgba(255, 106, 0, 0.4)";
         });
 
         // Append the message and button to the overlay
