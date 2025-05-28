@@ -82,19 +82,17 @@ const findRelevantChunks = async (userQuery, chunks, topK = 3) => {
     try {
         const filePath = 'output.docx'; // Your .docx file
         docChunks = await extractTextFromDocx(filePath); // Extract chunks
-        //console.log("Document Chunks:", docChunks); // Verify the chunks
         console.log("Document content loaded and split into chunks.");
-
-        // Start the server
-        const PORT = process.env.PORT || 3001;
-        app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
-        });
     } catch (error) {
-        console.error("Error initializing application:", error);
-        process.exit(1);
+        console.warn("Warnung: Dokument konnte nicht geladen werden. Chatbot läuft trotzdem.");
     }
 })();
+
+// Start the server regardless of .docx success
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`Server läuft auf http://localhost:${PORT}`);
+});
 
 
 //const systemPrompt = `Fragen zum Gymnasium Alster beantworten. Beziehe dich dabei auf Informationen: ${docContent}`;
@@ -226,4 +224,3 @@ Be polite, professional, and concise, but ensure you provide all necessary detai
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
