@@ -606,8 +606,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const lastMessages = getLastMessages(3);
             const memory = `${lastMessages.join('; ')}`;
 
-            //fetch('https://tester.osc-fr1.scalingo.io/chat', {
-            fetch('http://localhost:3001/chat', {   //für lokales testen
+            fetch('https://tester.osc-fr1.scalingo.io/chat', {
+            //fetch('http://localhost:3001/chat', {   //für lokales testen
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userMessage, memory: memory }),
