@@ -10,6 +10,7 @@
             background-color: #0a0716;
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
+            background: transparent;
         }
         /* CSS for message bubbles and links */
         div.messageElement {
@@ -26,6 +27,17 @@
                 transform: translateY(-10px); /* Dots move up */
             }
         }
+
+    /* Hide native scrollbar but keep scrolling enabled */
+    #chat-area {
+      scrollbar-width: none;        /* Firefox */
+      -ms-overflow-style: none;     /* IE 10+ */
+    }
+    #chat-area::-webkit-scrollbar {
+      width: 0;    /* Chrome/Safari/Edge */
+      height: 0;
+    }
+
     </style>
 </head>
 <body>

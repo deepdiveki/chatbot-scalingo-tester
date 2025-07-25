@@ -412,8 +412,14 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.position = "fixed"; // Ensure fixed positioning to prevent layout shift
     chatbotContainer.style.bottom = "80px";
     chatbotContainer.style.right = "20px";
-    chatbotContainer.style.width = "420px";
-    chatbotContainer.style.height = "600px";
+    // fluid width: 25vw but never under 300px or over 500px
+    chatbotContainer.style.width    = "25vw";
+    chatbotContainer.style.minWidth = "300px";
+    chatbotContainer.style.maxWidth = "420px";
+    // fluid height: 60vh but never under 400px or over 80vh
+    chatbotContainer.style.height   = "60vh";
+    chatbotContainer.style.minHeight= "300px";
+    chatbotContainer.style.maxHeight= "80vh";
     chatbotContainer.style.background = "linear-gradient(to top, #e8d0ff, #caa5ff)";
     chatbotContainer.style.border = "6px solid rgba(255, 255, 255, 0.6)";
     chatbotContainer.style.borderRadius = "20px";
