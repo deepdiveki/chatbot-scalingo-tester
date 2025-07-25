@@ -21,7 +21,7 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
 
         // Create the message content
         const message = document.createElement("div");
-        message.innerHTML = 'Willkommen zum Chatbot des Gymnasium Alster! <br> Bitte akzeptieren Sie unsere <a href="https://www.deepdive-ki.de/datenschutz" target="_blank" style="color: #7f56d9; text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
+        message.innerHTML = 'Willkommen zum Chatbot des Gymnasium Alster! <br> Bitte akzeptieren Sie unsere <a href="https://www.deepdive-ki.de/datenschutz" target="_blank" style="color: rgb(62, 125, 255); text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
         message.style.color = "#000";
         message.style.fontSize = "16px";
         message.style.textAlign = "center";
@@ -31,8 +31,8 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         const button = document.createElement("button");
         button.innerText = "Akzeptieren";
         button.style.padding = "12px 24px";
-        button.style.background = "linear-gradient(145deg, #8b5cf6, #7f56d9)";
-        button.style.boxShadow = "0 4px 10px rgba(127, 86, 217, 0.4)";
+        button.style.background = "linear-gradient(145deg, rgb(62, 125, 255), rgb(62, 125, 255))";
+        button.style.boxShadow = "0 4px 10px rgba(62, 125, 255, 0.4)";
         button.style.transition = "all 0.2s ease-in-out";
         button.style.color = "white";
         button.style.border = "none";
@@ -42,11 +42,11 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
         button.style.cursor = "pointer";
         button.addEventListener("mouseenter", () => {
             button.style.transform = "scale(1.05)";
-            button.style.boxShadow = "0 6px 14px rgba(127, 86, 217, 0.6)";
+            button.style.boxShadow = "0 6px 14px rgba(62, 125, 255, 0.6)";
         });
         button.addEventListener("mouseleave", () => {
             button.style.transform = "scale(1)";
-            button.style.boxShadow = "0 4px 10px rgba(127, 86, 217, 0.4)";
+            button.style.boxShadow = "0 4px 10px rgba(62, 125, 255, 0.4)";
         });
 
         // Append the message and button to the overlay
@@ -264,7 +264,7 @@ function createMessage(message, sender) {
     if (sender === "user") {
         // User-Nachricht Stil (Fin-ähnlich)
         messageWrapper.style.justifyContent = "flex-end";
-        messageElement.style.background = "linear-gradient(145deg, #d946ef, #9333ea)";
+        messageElement.style.background = "linear-gradient(145deg, rgb(62, 125, 255), rgb(62, 125, 255))";
         messageElement.style.borderRadius = "20px";
         messageElement.style.padding = "14px 18px";
         messageElement.style.fontSize = "15px";
@@ -274,15 +274,15 @@ function createMessage(message, sender) {
         messageElement.style.display = "flex";
         messageElement.style.flexDirection = "column";
         // Entferne harte Ränder durch weicheren Border
-        messageElement.style.border = "1px solid #9333ea";
+        messageElement.style.border = "1px solid rgb(62, 125, 255)";
         messageWrapper.appendChild(messageElement);
     } else {
         // Bot-Nachricht Stil mit modernen Fin-ähnlichen Upgrades
         messageWrapper.style.justifyContent = "flex-start";
         // Optische Upgrades für modernes Design
-        messageElement.style.background = "rgba(243, 232, 255, 0.6)";
-        messageElement.style.border = "1px solid #a78bfa";
-        messageElement.style.boxShadow = "0 3px 10px rgba(127, 86, 217, 0.15)";
+        messageElement.style.background = "rgba(255, 255, 255, 0.8)";
+        messageElement.style.border = "1px solid rgb(62, 125, 255)";
+        messageElement.style.boxShadow = "0 3px 10px rgba(62, 125, 255, 0.15)";
         messageElement.style.borderRadius = "16px";
         messageElement.style.padding = "16px 20px";
         messageElement.style.fontSize = "15px";
@@ -329,7 +329,7 @@ function createMessage(message, sender) {
         if (message.includes("Sources:")) {
             const sourcesSection = document.createElement("div");
             sourcesSection.style.marginTop = "12px";
-            sourcesSection.style.borderTop = "1px solid #6d28d9";
+            sourcesSection.style.borderTop = "1px solid rgb(62, 125, 255)";
             sourcesSection.style.paddingTop = "8px";
 
             const title = document.createElement("div");
@@ -346,7 +346,7 @@ function createMessage(message, sender) {
                 links.forEach(linkMatch => {
                     const url = linkMatch.slice(1, -1);
                     const item = document.createElement("div");
-                    item.innerHTML = `&#10148; <a href="${url}" target="_blank" style="color: #9333ea; text-decoration: underline;">${url}</a>`;
+                    item.innerHTML = `&#10148; <a href="${url}" target="_blank" style="color: rgb(62, 125, 255); text-decoration: underline;">${url}</a>`;
                     item.style.fontSize = "13px";
                     item.style.marginBottom = "2px";
                     sourcesSection.appendChild(item);
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleButton.style.position = "fixed";
     toggleButton.style.bottom = "20px";
     toggleButton.style.right = "20px";
-    toggleButton.style.backgroundColor = "#8b5cf6";
+    toggleButton.style.backgroundColor = "rgb(62, 125, 255)";
     toggleButton.style.color = "#fff";
     toggleButton.style.border = "none";
     toggleButton.style.padding = "10px 20px";
@@ -398,7 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Hover-Effekt für den Toggle-Button
     toggleButton.addEventListener("mouseenter", () => {
         toggleButton.style.transform = "scale(1.1)";
-        toggleButton.style.boxShadow = "0 0 12px #8b5cf6";
+        toggleButton.style.boxShadow = "0 0 12px rgb(62, 125, 255)";
     });
     toggleButton.addEventListener("mouseleave", () => {
         toggleButton.style.transform = "scale(1)";
@@ -420,7 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.height   = "60vh";
     chatbotContainer.style.minHeight= "300px";
     chatbotContainer.style.maxHeight= "80vh";
-    chatbotContainer.style.background = "linear-gradient(to top, #e8d0ff, #caa5ff)";
+    chatbotContainer.style.background = "linear-gradient(to bottom right, rgba(62, 125, 255, 0.2), rgba(62, 125, 255, 0.05))";
     chatbotContainer.style.border = "6px solid rgba(255, 255, 255, 0.6)";
     chatbotContainer.style.borderRadius = "20px";
     chatbotContainer.style.backdropFilter = "blur(10px)";
@@ -467,7 +467,8 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.style.flex = "1";
     chatArea.style.padding = "15px";
     chatArea.style.overflowY = "auto";
-    chatbotContainer.style.background = "linear-gradient(to bottom right, #f8f0ff, #d4b5ff)";
+    // Subtle, soft-fading effect for the chatbot background
+    chatbotContainer.style.background = "linear-gradient(to bottom right, rgba(62, 125, 255, 0.2), rgba(62, 125, 255, 0.05))";
     chatbotContainer.style.color = "#ffffff";
     // Ensure chatArea is positioned relative for overlay fade
     chatArea.style.position = "relative";
@@ -544,7 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sendButton.style.height = "32px";
     sendButton.style.border = "none";
     sendButton.style.borderRadius = "50%";
-    sendButton.style.backgroundColor = "#7f56d9";
+    sendButton.style.backgroundColor = "rgb(62, 125, 255)";
     sendButton.style.color = "#fff";
     sendButton.style.display = "flex";
     sendButton.style.alignItems = "center";
@@ -640,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Interaktive Steuerung des Sendebuttons basierend auf Texteingabe
     input.addEventListener("input", () => {
         const isNotEmpty = input.value.trim().length > 0;
-        sendButton.style.backgroundColor = isNotEmpty ? "#7f56d9" : "#ccc";
+        sendButton.style.backgroundColor = isNotEmpty ? "rgb(62, 125, 255)" : "#ccc";
         sendButton.style.opacity = isNotEmpty ? "1" : "0.5";
         sendButton.style.cursor = isNotEmpty ? "pointer" : "default";
     });
