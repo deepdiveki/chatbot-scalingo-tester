@@ -412,10 +412,10 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.position = "fixed"; // Ensure fixed positioning to prevent layout shift
     chatbotContainer.style.bottom = "80px";
     chatbotContainer.style.right = "20px";
-    // fluid width: 25vw but never under 300px or over 500px
+    // fluid width: 25vw but never under 300px or over 42vh
     chatbotContainer.style.width    = "25vw";
     chatbotContainer.style.minWidth = "300px";
-    chatbotContainer.style.maxWidth = "420px";
+    chatbotContainer.style.maxWidth = "42vh";
     // fluid height: 60vh but never under 400px or over 80vh
     chatbotContainer.style.height   = "60vh";
     chatbotContainer.style.minHeight= "300px";
