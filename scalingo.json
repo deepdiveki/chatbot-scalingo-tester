@@ -1,0 +1,44 @@
+{
+  "name": "chatbot-pdf-integration",
+  "description": "Chatbot mit PDF-Integration für Gymnasium Alster",
+  "repository": "https://github.com/deepdiveki/chatbot-scalingo-tester",
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    },
+    "WEAVIATE_HOST": {
+      "description": "Weaviate Cloud Host",
+      "value": "wctmcy7wrrqupflfnn32bw.c0.europe-west3.gcp.weaviate.cloud"
+    },
+    "WEAVIATE_SCHEME": {
+      "value": "https"
+    },
+    "WEAVIATE_CLASS": {
+      "value": "Gymnasiumalsterschulbuero"
+    },
+    "ENABLE_CRON": {
+      "value": "true"
+    },
+    "CRON_SCHEDULE": {
+      "value": "0 3 * * *"
+    },
+    "TZ": {
+      "value": "Europe/Berlin"
+    }
+  },
+  "formation": {
+    "web": {
+      "amount": 1,
+      "size": "S"
+    }
+  },
+  "addons": [],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "echo 'Deployment abgeschlossen!'"
+  }
+}

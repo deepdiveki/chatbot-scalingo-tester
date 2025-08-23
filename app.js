@@ -437,23 +437,101 @@ if (ENABLE_CRON) {
   console.log('[CRON] disabled via ENABLE_CRON=false');
 }
 
-// Start the server regardless of .docx success
-const HOST = process.env.HOST || '0.0.0.0';
+// --- Server configuration ---
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, HOST, () => {
-  console.log(`Server läuft auf Port ${PORT} (Host: ${HOST})`);
+const HOST = process.env.HOST || '0.0.0.0';
+
+// --- CORS configuration for both local and production ---
+app.use(cors({
+    origin: [
+        'http://localhost:3000',           // Local frontend
+        'http://localhost:3001',           // Local frontend (same port)
+        'https://schulwebsites-template.osc-fr1.scalingo.io', // Production frontend
+        'https://*.scalingo.io',           // Any Scalingo subdomain
+        'https://*.deepdive-ki.de',        // Your production domain
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// --- Middleware to parse JSON request bodies ---
+app.use(express.json());
+
+// --- Root endpoint for local development ---
+app.get('/', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Chatbot Backend - PDF Integration</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .container { max-width: 800px; margin: 0 auto; }
+                .endpoint { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+                .method { color: #007cba; font-weight: bold; }
+                .url { font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 3px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🚀 Chatbot Backend - PDF Integration</h1>
+                <p>Dieses Backend läuft sowohl lokal als auch auf Scalingo.</p>
+                
+                <h2>📋 Verfügbare Endpunkte:</h2>
+                
+                <div class="endpoint">
+                    <div class="method">GET</div>
+                    <div class="url">/health</div>
+                    <p>Status-Check des Backends</p>
+                </div>
+                
+                <div class="endpoint">
+                    <div class="method">POST</div>
+                    <div class="url">/chat</div>
+                    <p>Chat-API mit PDF-Integration</p>
+                </div>
+                
+                <div class="endpoint">
+                    <div class="method">POST</div>
+                    <div class="url">/pdf</div>
+                    <p>PDF-Upload und -Verwaltung</p>
+                </div>
+                
+                <h2>🔗 Frontend-Links:</h2>
+                <ul>
+                    <li><a href="/pdf-upload.html">PDF-Upload (Lokale Entwicklung)</a></li>
+                    <li><a href="/chatbot.js">Chatbot JavaScript</a></li>
+                    <li><a href="/index.html">Alte Chatbot-Integration</a></li>
+                </ul>
+                
+                <h2>🌍 Umgebung:</h2>
+                <p><strong>Port:</strong> ${PORT}</p>
+                <p><strong>Host:</strong> ${HOST}</p>
+                <p><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
+                
+                <h2>📚 Dokumentation:</h2>
+                <p>Siehe <a href="/PDF_INTEGRATION_README.md">PDF_INTEGRATION_README.md</a> für Details.</p>
+            </div>
+        </body>
+        </html>
+    `);
 });
 
+// --- Static files for local development (AFTER routes) ---
+app.use(express.static('public'));
 
-//const systemPrompt = `Fragen zur Gymnasium Alster beantworten. Beziehe dich dabei auf Informationen: ${docContent}`;
+// --- Health check endpoint ---
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT,
+        host: HOST
+    });
+});
 
-
-// Middleware to parse JSON request bodies and handle CORS
-app.use(express.json());
-app.use(cors({ origin: '*' })); // Allow all origins (restrict in production)
-
-// Serve static files (frontend)
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/debug/doc', (_req, res) => {
     const stat = fs.existsSync(filePath) ? fs.statSync(filePath) : null;
@@ -834,6 +912,15 @@ app.get('/debug/health', (_req, res) => {
 // Default route (serves the frontend `index.html`)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Start the server regardless of .docx success
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server läuft auf Port ${PORT} (Host: ${HOST})`);
+  console.log(`📱 Lokale Entwicklung: http://localhost:${PORT}`);
+  console.log(`🌍 Produktion: https://your-app.osc-fr1.scalingo.io`);
+  console.log(`📋 Health Check: http://localhost:${PORT}/health`);
+  console.log(`📄 PDF-Upload: http://localhost:${PORT}/pdf-upload.html`);
 });
 
 export { runCrawlerAndReload };

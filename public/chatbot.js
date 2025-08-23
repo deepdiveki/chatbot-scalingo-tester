@@ -761,9 +761,26 @@ document.addEventListener("DOMContentLoaded", () => {
             const lastMessages = getLastMessages(3);
             const memory = `${lastMessages.join('; ')}`;
 
-            const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-            // In Produktion nutzen wir eine relative URL, damit die gleiche Origin verwendet wird
-            const API_CHAT_URL = isLocal ? 'http://localhost:3001/chat' : '/chat';
+            // Intelligente API-URL-Erkennung für lokale und Produktionsumgebung
+            let API_CHAT_URL;
+            const currentHost = window.location.hostname;
+            
+            if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+                // Lokale Entwicklung
+                API_CHAT_URL = 'http://localhost:3001/chat';
+                console.log('🔧 Lokale Entwicklung: Verwende localhost:3001');
+            } else if (currentHost.includes('scalingo.io')) {
+                // Scalingo Produktion - verwende relative URL für gleiche Origin
+                API_CHAT_URL = '/chat';
+                console.log('🌍 Produktion: Verwende relative URL /chat');
+            } else {
+                // Fallback: Verwende relative URL
+                API_CHAT_URL = '/chat';
+                console.log('🔄 Fallback: Verwende relative URL /chat');
+            }
+            
+            console.log('📡 API URL:', API_CHAT_URL);
+            
             fetch(API_CHAT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

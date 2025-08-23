@@ -174,8 +174,25 @@
             };
             
             try {
-                const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-                const API_URL = isLocal ? 'http://localhost:3001/pdf' : '/pdf';
+                // Intelligente API-URL-Erkennung für lokale und Produktionsumgebung
+                let API_URL;
+                const currentHost = window.location.hostname;
+                
+                if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+                    // Lokale Entwicklung
+                    API_URL = 'http://localhost:3001/pdf';
+                    console.log('🔧 Lokale Entwicklung: Verwende localhost:3001');
+                } else if (currentHost.includes('scalingo.io')) {
+                    // Scalingo Produktion - verwende relative URL für gleiche Origin
+                    API_URL = '/pdf';
+                    console.log('🌍 Produktion: Verwende relative URL /pdf');
+                } else {
+                    // Fallback: Verwende relative URL
+                    API_URL = '/pdf';
+                    console.log('🔄 Fallback: Verwende relative URL /pdf');
+                }
+                
+                console.log('📡 PDF API URL:', API_URL);
                 
                 const response = await fetch(API_URL, {
                     method: 'POST',
