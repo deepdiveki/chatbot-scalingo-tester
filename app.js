@@ -127,6 +127,22 @@ let docContent = ''; // Variable to store extracted .docx content
 
 let docChunks = []; // To store document chunks
 
+// In-memory storage für PDFs als Fallback (wenn Weaviate nicht verfügbar)
+let pdfStorage = [
+  {
+    title: "Test PDF",
+    fileUrl: "https://example.com/test.pdf",
+    content: "Dies ist ein Test-PDF für die Integration",
+    source: "pdf"
+  },
+  {
+    title: "Anmeldebogen Klassenreise", 
+    fileUrl: "https://github.com/deepdiveki/pdf-test/blob/0133ce891ba5a62ec73b0994a25840e437a3978b/Anmeldebogen%20fu%CC%88r%20die%20Klassenreise.pdf",
+    content: "Anmeldebogen für die Klassenreise des Gymnasium Alster. Bitte füllen Sie alle Felder aus und geben Sie den Bogen bis zum 15. Juni zurück.",
+    source: "pdf"
+  }
+];
+
 const filePath = path.join(__dirname, 'output.docx');
 console.log('[DOC] expected path:', filePath, 'exists:', fs.existsSync(filePath));
 
