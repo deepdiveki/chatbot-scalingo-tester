@@ -295,6 +295,37 @@ async function savePdfToWeaviate(title, fileUrl, content = '') {
   }
 
   try {
+    // Zuerst nach bestehenden PDFs mit dem gleichen Titel suchen
+    const existingPdfs = await weaviateClient.graphql.get()
+      .withClassName(WEAVIATE_CLASS)
+      .withFields('_additional { id }')
+      .withWhere({
+        path: ['title'],
+        operator: 'Equal',
+        valueText: title
+      })
+      .withLimit(10)
+      .do();
+    
+    const existingItems = ((((existingPdfs || {}).data || {}).Get || {})[WEAVIATE_CLASS]) || [];
+    
+    // Bestehende PDFs mit dem gleichen Titel löschen
+    if (existingItems.length > 0) {
+      console.log(`[WEAVIATE] Found ${existingItems.length} existing PDFs with title "${title}", deleting...`);
+      
+      for (const item of existingItems) {
+        try {
+          await weaviateClient.data.deleter()
+            .withClassName(WEAVIATE_CLASS)
+            .withID(item._additional.id)
+            .do();
+          console.log(`[WEAVIATE] Deleted existing PDF with ID: ${item._additional.id}`);
+        } catch (deleteErr) {
+          console.warn(`[WEAVIATE] Failed to delete existing PDF:`, deleteErr?.message || deleteErr);
+        }
+      }
+    }
+
     // Generate embedding für den Inhalt (falls vorhanden)
     let vector = null;
     if (content) {
@@ -560,6 +591,42 @@ app.post('/admin/run-crawl-now', async (_req, res) => {
         res.json({ ok: true, ran: true, duration_ms: ms, chunks: docChunks.length });
     } catch (e) {
         res.status(500).json({ ok: false, error: String(e?.message || e) });
+    }
+});
+
+// Neuer Endpunkt: Alle PDFs löschen (für Bereinigung)
+app.delete('/pdf/all', async (req, res) => {
+    if (!weaviateAvailable || !weaviateClient) {
+        return res.status(503).json({ 
+            success: false, 
+            error: 'Weaviate nicht verfügbar' 
+        });
+    }
+
+    try {
+        // Alle PDFs mit source='pdf' löschen
+        const result = await weaviateClient.batch.objectsBatchDeleter()
+            .withClassName(WEAVIATE_CLASS)
+            .withWhere({ 
+                path: ['source'], 
+                operator: 'Equal', 
+                valueText: 'pdf' 
+            })
+            .do();
+        
+        console.log('[WEAVIATE] All PDFs deleted for cleanup');
+        
+        res.json({ 
+            success: true, 
+            message: 'Alle PDFs wurden gelöscht',
+            result: result
+        });
+    } catch (error) {
+        console.error('[WEAVIATE] Error deleting all PDFs:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Fehler beim Löschen der PDFs: ' + error.message 
+        });
     }
 });
 
