@@ -216,10 +216,10 @@ function formatMessage(message) {
     // Replace line breaks (\n) with <br> for proper formatting
     message = message.replace(/\n/g, "<br>");
     
-    // PDF-Links im Format "PDF: Title [URL]" schön formatieren
+    // PDF-Links im Format "PDF: Title [URL]" schön formatieren - direkt klickbar
     message = message.replace(
         /PDF:\s*(.*?)\s*\[(https?:\/\/[^\s\]]+)\]/g,
-        '<div style="margin: 10px 0; padding: 12px; background: linear-gradient(145deg, rgba(62, 125, 255, 0.1), rgba(62, 125, 255, 0.05)); border: 1px solid rgba(62, 125, 255, 0.3); border-radius: 8px;"><div style="font-weight: bold; color: #1a1a1a; margin-bottom: 8px;">📄 $1</div><a href="$2" target="_blank" style="color: rgb(62, 125, 255); text-decoration: none; padding: 6px 12px; background: rgba(62, 125, 255, 0.1); border-radius: 6px; display: inline-block; transition: all 0.2s ease;">PDF öffnen</a></div>'
+        '<div style="margin: 10px 0; padding: 12px; background: linear-gradient(145deg, rgba(62, 125, 255, 0.1), rgba(62, 125, 255, 0.05)); border: 1px solid rgba(62, 125, 255, 0.3); border-radius: 8px;"><div style="font-weight: bold; color: #1a1a1a; margin-bottom: 8px;">📄 $1</div><a href="$2" target="_blank" style="color: rgb(62, 125, 255); text-decoration: none; padding: 6px 12px; background: rgba(62, 125, 255, 0.1); border-radius: 6px; display: inline-block; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.background=\'rgba(62, 125, 255, 0.2)\'" onmouseout="this.style.background=\'rgba(62, 125, 255, 0.1)\'">PDF öffnen</a><br><small style="color: #666; margin-top: 4px; display: block;">🔗 Direktlink: <a href="$2" target="_blank" style="color: rgb(62, 125, 255); text-decoration: underline;">$2</a></small></div>'
     );
     
     // Replace links in the format "Description: [URL]"
