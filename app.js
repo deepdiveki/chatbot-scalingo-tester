@@ -72,16 +72,23 @@ let WEAVIATE_CLASS = process.env.WEAVIATE_CLASS || 'Gymnasiumalsterschulbuero';
     const apiKey = process.env.WEAVIATE_API_KEY;
 
     if (host) {
-      weaviateClient = makeClient({
-        scheme,
-        host,
-        apiKey: apiKey ? new ApiKey(apiKey) : undefined,
-        headers: {
-          'X-Weaviate-Cluster-Url': `${scheme}://${host}`,
-        },
-      });
-      weaviateAvailable = true;
-      console.log('[WEAVIATE] configured:', scheme + '://' + host, 'class=', WEAVIATE_CLASS);
+      try {
+        weaviateClient = makeClient({
+          scheme,
+          host,
+          apiKey: apiKey ? new ApiKey(apiKey) : undefined,
+          headers: {
+            'X-Weaviate-Cluster-Url': `${scheme}://${host}`,
+          },
+        });
+        weaviateAvailable = true;
+        console.log('[WEAVIATE] configured:', scheme + '://' + host, 'class=', WEAVIATE_CLASS);
+      } catch (clientError) {
+        console.warn('[WEAVIATE] Client creation failed, using fallback mode:', clientError?.message || clientError);
+        weaviateAvailable = false;
+        weaviateClient = null;
+        console.log('[WEAVIATE] Fallback mode activated - PDFs available via local storage');
+      }
     } else {
       console.log('[WEAVIATE] not configured (missing WEAVIATE_HOST). Falling back to local embeddings.');
     }
@@ -113,10 +120,16 @@ async function checkWeaviateAvailability() {
     }
 }
 
-// Weaviate-Status beim Start prüfen
+// Weaviate-Status beim Start prüfen (mit Fehlerbehandlung)
 setTimeout(async () => {
-    weaviateAvailable = await checkWeaviateAvailability();
-    console.log(`[WEAVIATE] Availability check result: ${weaviateAvailable}`);
+    try {
+        weaviateAvailable = await checkWeaviateAvailability();
+        console.log(`[WEAVIATE] Availability check result: ${weaviateAvailable}`);
+    } catch (error) {
+        console.warn('[WEAVIATE] Availability check failed, using fallback mode:', error?.message || error);
+        weaviateAvailable = false;
+        console.log('[WEAVIATE] Fallback mode activated - PDFs available via local storage');
+    }
 }, 5000); // 5 Sekunden nach dem Start prüfen
 
 const app = express();
