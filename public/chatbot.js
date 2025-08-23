@@ -21,7 +21,7 @@ function showAcceptConditionsScreen(chatbotContainer, toggleButton) {
 
         // Create the message content
         const message = document.createElement("div");
-        message.innerHTML = 'Willkommen zum Chatbot des Gymnasium Alster! <br> Bitte akzeptieren Sie unsere <a href="https://www.deepdive-ki.de/datenschutz" target="_blank" style="color: rgb(62, 125, 255); text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
+        message.innerHTML = 'Willkommen zum Chatbot des Gymnasium Alster <br> Bitte akzeptieren Sie unsere <a href="https://www.deepdive-ki.de/datenschutz" target="_blank" style="color: rgb(62, 125, 255); text-decoration: underline;">Datenschutzrichtlinien</a>, um fortzufahren.';
         message.style.color = "#000";
         message.style.fontSize = "16px";
         message.style.textAlign = "center";
@@ -193,7 +193,7 @@ function removeTypingIndicator(chatArea) {
 // Zeigt willkommensnachrichten an
 function displayInitialMessage(chatArea) {
 
-    const willkommensNachricht = "Hier ist der Chatbot des Gymnasium Alster! Wie können wir dir helfen?";
+    const willkommensNachricht = "Hier ist der Chatbot des gymnasium Alster. Wie können wir dir helfen?";
 
     // Call createMessage with proper arguments
     const [messageWrapper, messageElement] = createMessage(willkommensNachricht, "bot");
@@ -395,14 +395,32 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleButton.style.zIndex = "1000";
     toggleButton.style.boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)";
     toggleButton.style.transition = "transform 0.2s ease";
+    // Subtle pulsing glow to draw attention
+    if (!document.getElementById("chat-toggle-pulse-style")) {
+        const pulseStyle = document.createElement("style");
+        pulseStyle.id = "chat-toggle-pulse-style";
+        pulseStyle.textContent = `
+@keyframes togglePulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(62,125,255,0); transform: scale(1); }
+  50%      { box-shadow: 0 0 16px rgba(62,125,255,0.75); transform: scale(1.03); }
+}
+@media (prefers-reduced-motion: reduce) { 
+  #chat-toggle-button { animation: none !important; }
+}
+        `;
+        document.head.appendChild(pulseStyle);
+    }
+    toggleButton.style.animation = "togglePulse 2.6s ease-in-out infinite";
     // Hover-Effekt für den Toggle-Button
     toggleButton.addEventListener("mouseenter", () => {
         toggleButton.style.transform = "scale(1.1)";
         toggleButton.style.boxShadow = "0 0 12px rgb(62, 125, 255)";
+        toggleButton.style.animationPlayState = "paused";
     });
     toggleButton.addEventListener("mouseleave", () => {
         toggleButton.style.transform = "scale(1)";
         toggleButton.style.boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)";
+        toggleButton.style.animationPlayState = "running";
     });
     document.body.appendChild(toggleButton);
 
@@ -412,10 +430,10 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.position = "fixed"; // Ensure fixed positioning to prevent layout shift
     chatbotContainer.style.bottom = "80px";
     chatbotContainer.style.right = "20px";
-    // fluid width: 25vw but never under 300px or over 42vh
-    chatbotContainer.style.width    = "25vw";
+    // fluid width: 22vw but never under 320px or over 560px (or calc for mobile)
+    chatbotContainer.style.width    = "clamp(320px, 22vw, 560px)";
     chatbotContainer.style.minWidth = "300px";
-    chatbotContainer.style.maxWidth = "42vh";
+    chatbotContainer.style.maxWidth = "min(560px, calc(100vw - 40px))";
     // fluid height: 60vh but never under 400px or over 80vh
     chatbotContainer.style.height   = "60vh";
     chatbotContainer.style.minHeight= "300px";
@@ -433,6 +451,28 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotContainer.style.flexDirection = "column";
     chatbotContainer.style.fontFamily = "Arial, sans-serif";
     // Optional: outline und outlineOffset bewusst deaktiviert/dezent gelassen
+
+    // Support expandable size + persist in session
+    let isChatbotExpanded = sessionStorage.getItem("chatbotExpanded") === "true";
+    function applyChatbotSize() {
+        if (isChatbotExpanded) {
+            chatbotContainer.style.width = "clamp(320px, 22vw, 560px)";
+            chatbotContainer.style.minWidth = "300px";
+            chatbotContainer.style.maxWidth = "min(560px, calc(100vw - 40px))";
+            chatbotContainer.style.height = "80vh";
+            chatbotContainer.style.minHeight = "400px";
+            chatbotContainer.style.maxHeight = "90vh";
+        } else {
+            chatbotContainer.style.width    = "clamp(320px, 22vw, 560px)";
+            chatbotContainer.style.minWidth = "300px";
+            chatbotContainer.style.maxWidth = "min(560px, calc(100vw - 40px))";
+            chatbotContainer.style.height   = "60vh";
+            chatbotContainer.style.minHeight= "300px";
+            chatbotContainer.style.maxHeight= "80vh";
+        }
+    }
+    applyChatbotSize();
+
     document.body.appendChild(chatbotContainer);
 
     // Add header
@@ -443,22 +483,126 @@ document.addEventListener("DOMContentLoaded", () => {
     header.style.padding = "12px 16px";
     header.style.backgroundColor = "#ffffff";
     header.style.borderBottom = "1px solid #eee";
-    // Removed logo image element
-    // const logo = document.createElement("img");
-    // logo.src = "ddki logo weiß.svg";
-    // logo.alt = "Bot Avatar";
-    // logo.style.width = "28px";
-    // logo.style.height = "28px";
-    // logo.style.borderRadius = "50%";
-    // logo.style.marginRight = "10px";
+    header.style.position = "relative"; // needed for the dropdown positioning
 
     const title = document.createElement("div");
-    title.innerHTML = `<strong>Gymnasium Alster</strong> · Das KI-Schulbüro`;
+    title.innerHTML = `<strong>DBR</strong> · KI-Schulbüro`;
     title.style.fontSize = "15px";
     title.style.color = "#333";
 
-    // header.appendChild(logo);
+    // Spacer to push controls to the right
+    const headerSpacer = document.createElement("div");
+    headerSpacer.style.flex = "1";
+
+    // Three-dots options button (⋮)
+    const optionsButton = document.createElement("button");
+    optionsButton.setAttribute("aria-label", "Optionen");
+    optionsButton.innerHTML = "&middot;&middot;&middot;"; // three horizontal dots
+    optionsButton.style.fontSize = "18px";
+    optionsButton.style.lineHeight = "18px";
+    optionsButton.style.background = "transparent";
+    optionsButton.style.border = "none";
+    optionsButton.style.color = "#999";
+    optionsButton.style.cursor = "pointer";
+    optionsButton.style.padding = "4px 8px";
+    optionsButton.style.borderRadius = "6px";
+    optionsButton.title = "Optionen";
+    optionsButton.addEventListener("mouseenter", () => {
+        optionsButton.style.backgroundColor = "#f2f2f2";
+        optionsButton.style.color = "#666";
+    });
+    optionsButton.addEventListener("mouseleave", () => {
+        optionsButton.style.backgroundColor = "transparent";
+        optionsButton.style.color = "#999";
+    });
+
+    // Dropdown menu anchored to header (initially hidden)
+    const menu = document.createElement("div");
+    menu.id = "chatbot-menu";
+    menu.style.position = "absolute";
+    menu.style.top = "44px";
+    menu.style.right = "10px";
+    menu.style.background = "#fff";
+    menu.style.border = "1px solid #eee";
+    menu.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
+    menu.style.borderRadius = "10px";
+    menu.style.padding = "6px 0";
+    menu.style.display = "none";
+    menu.style.zIndex = "3000";
+
+    const enlargeItem = document.createElement("button");
+    enlargeItem.type = "button";
+    enlargeItem.style.display = "block";
+    enlargeItem.style.width = "100%";
+    enlargeItem.style.textAlign = "left";
+    enlargeItem.style.background = "transparent";
+    enlargeItem.style.border = "none";
+    enlargeItem.style.padding = "8px 14px";
+    enlargeItem.style.cursor = "pointer";
+    enlargeItem.style.fontSize = "14px";
+    enlargeItem.addEventListener("mouseenter", () => enlargeItem.style.backgroundColor = "#f7f7f7");
+    enlargeItem.addEventListener("mouseleave", () => enlargeItem.style.backgroundColor = "transparent");
+    enlargeItem.textContent = isChatbotExpanded ? "Normalgröße" : "Fenster vergrößern";
+    menu.appendChild(enlargeItem);
+
+    optionsButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+    // Hide menu when clicking outside
+    document.addEventListener("click", () => {
+        if (menu.style.display === "block") menu.style.display = "none";
+    });
+
+    // Toggle expanded size when clicking the menu item
+    enlargeItem.addEventListener("click", () => {
+        isChatbotExpanded = !isChatbotExpanded;
+        sessionStorage.setItem("chatbotExpanded", isChatbotExpanded ? "true" : "false");
+        applyChatbotSize();
+        // Update label and hide menu
+        enlargeItem.textContent = isChatbotExpanded ? "Normalgröße" : "Fenster vergrößern";
+        menu.style.display = "none";
+    });
+
+    // Close (×) button in the top-right
+    const closeButton = document.createElement("button");
+    closeButton.setAttribute("aria-label", "Chat schließen");
+    closeButton.innerHTML = "&times;";
+    closeButton.style.marginLeft = "8px"; // sits to the right of options button
+    closeButton.style.fontSize = "20px";
+    closeButton.style.lineHeight = "20px";
+    closeButton.style.background = "transparent";
+    closeButton.style.border = "none";
+    closeButton.style.color = "#999";
+    closeButton.style.cursor = "pointer";
+    closeButton.style.padding = "4px 8px";
+    closeButton.style.borderRadius = "6px";
+    closeButton.addEventListener("mouseenter", () => {
+        closeButton.style.backgroundColor = "#f2f2f2";
+        closeButton.style.color = "#666";
+    });
+    closeButton.addEventListener("mouseleave", () => {
+        closeButton.style.backgroundColor = "transparent";
+        closeButton.style.color = "#999";
+    });
+    closeButton.addEventListener("click", () => {
+        // Hide the chatbot and update visibility state + toggle button visuals
+        chatbotContainer.style.display = "none";
+        saveChatbotVisibilityState(false);
+        // Switch toggle button icons back to the closed state
+        chatIcon.style.display = "block";
+        downArrowIcon.style.display = "none";
+        // Also hide the header when fully closed
+        header.style.display = "none";
+        // Hide any open menu
+        if (menu.style.display === "block") menu.style.display = "none";
+    });
+
     header.appendChild(title);
+    header.appendChild(headerSpacer);
+    header.appendChild(optionsButton);
+    header.appendChild(closeButton);
+    header.appendChild(menu);
     chatbotContainer.appendChild(header);
 
     // Add chat area
@@ -526,6 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
     input.type = "text";
     input.style.flex = "1";
     input.style.padding = "8px 12px";
+    input.style.paddingRight = "48px"; // a bit closer to the send button, still safe
     input.style.border = "none";
     input.style.borderRadius = "16px";
     input.style.fontSize = "14px";
@@ -533,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
     input.style.backgroundColor = "transparent";
     input.style.boxShadow = "none";
     input.style.margin = "0";
-    input.placeholder = "Schulbüro antworten...";
+    input.placeholder = "KI-Schulbüro antworten...";
 
     const sendButton = document.createElement("button");
     sendButton.innerHTML = "&#10148;";
@@ -573,6 +718,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const isOpen = chatbotContainer.style.display === "flex";
         chatIcon.style.display = isOpen ? "none" : "block";
         downArrowIcon.style.display = isOpen ? "block" : "none";
+        header.style.display = isOpen ? "flex" : "none";
+        // Stop pulsing when chat is open, resume when closed
+        toggleButton.style.animationPlayState = isOpen ? "paused" : "running";
     });
 
     // Handle send button click
@@ -605,9 +753,11 @@ document.addEventListener("DOMContentLoaded", () => {
             // Retrieve the last 3 user messages from session storage
             const lastMessages = getLastMessages(3);
             const memory = `${lastMessages.join('; ')}`;
-
-            //fetch('https://tester.osc-fr1.scalingo.io/chat', {
-            fetch('http://localhost:3001/chat', {   //für lokales testen
+            console.log("Test");
+            const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            // In Produktion nutzen wir eine relative URL, damit die gleiche Origin verwendet wird
+            const API_CHAT_URL = isLocal ? 'http://localhost:3001/chat' : '/chat';
+            fetch(API_CHAT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userMessage, memory: memory }),
@@ -634,6 +784,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     // wieder erlauben nächste nachricht zu schicken
                     sendButton.disabled = false;
                     // Do NOT reset button styling here; styling will only be set via input event
+                })
+                .catch(err => {
+                    console.error('Chat request failed:', err);
+                    removeTypingIndicator(chatArea);
+                    const [errorWrapper, errorElement] = createMessage('Entschuldigung, es gab ein Verbindungsproblem. Bitte versuche es später erneut.', 'bot');
+                    chatArea.appendChild(errorWrapper);
+                    chatArea.scrollTop = chatArea.scrollHeight;
+                    sendButton.disabled = false;
                 })
         }
     });
