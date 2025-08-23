@@ -49,8 +49,10 @@ let weaviateClient = null;
 let weaviateAvailable = false;
 let WEAVIATE_CLASS = process.env.WEAVIATE_CLASS || 'Gymnasiumalsterschulbuero';
 
+// Weaviate-Initialisierung mit umfassender Fehlerbehandlung
 (async () => {
   try {
+    console.log('[WEAVIATE] Starting initialization...');
     const mod = await import('weaviate-ts-client');
 
     // The client may be the default export or nested under .client
@@ -73,6 +75,7 @@ let WEAVIATE_CLASS = process.env.WEAVIATE_CLASS || 'Gymnasiumalsterschulbuero';
 
     if (host) {
       try {
+        console.log('[WEAVIATE] Creating client for:', scheme + '://' + host);
         weaviateClient = makeClient({
           scheme,
           host,
@@ -94,7 +97,12 @@ let WEAVIATE_CLASS = process.env.WEAVIATE_CLASS || 'Gymnasiumalsterschulbuero';
     }
   } catch (e) {
     console.log('[WEAVIATE] client import failed:', e.message);
+    console.log('[WEAVIATE] Fallback mode activated - PDFs available via local storage');
+    weaviateAvailable = false;
+    weaviateClient = null;
   }
+  
+  console.log('[WEAVIATE] Initialization complete. Available:', weaviateAvailable);
 })();
 
 // Weaviate-Verfügbarkeit prüfen
@@ -1108,13 +1116,25 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Umfassende Fehlerbehandlung für den Server
+process.on('uncaughtException', (error) => {
+    console.error('[FATAL] Uncaught Exception:', error?.message || error);
+    console.log('[FATAL] Server continues running in fallback mode');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+    console.log('[FATAL] Server continues running in fallback mode');
+});
+
 // Start the server regardless of .docx success
 app.listen(PORT, HOST, () => {
-  console.log(`🚀 Server läuft auf Port ${PORT} (Host: ${HOST})`);
-  console.log(`📱 Lokale Entwicklung: http://localhost:${PORT}`);
-  console.log(`🌍 Produktion: https://your-app.osc-fr1.scalingo.io`);
-  console.log(`📋 Health Check: http://localhost:${PORT}/health`);
-  console.log(`📄 PDF-Upload: http://localhost:${PORT}/pdf-upload.html`);
+    console.log(`🚀 Server läuft auf Port ${PORT} (Host: ${HOST})`);
+    console.log(`📱 Lokale Entwicklung: http://localhost:${PORT}`);
+    console.log(`🌍 Produktion: https://your-app.osc-fr1.scalingo.io`);
+    console.log(`📋 Health Check: http://localhost:${PORT}/health`);
+    console.log(`📄 PDF-Upload: http://localhost:${PORT}/pdf-upload.html`);
+    console.log(`🛡️  Fallback-Modus aktiviert - PDFs verfügbar über lokalen Storage`);
 });
 
 export { runCrawlerAndReload };
