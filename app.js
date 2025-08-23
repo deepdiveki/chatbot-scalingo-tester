@@ -831,6 +831,21 @@ app.post('/chat', async (req, res) => {
             relevantChunks = await findRelevantChunks(userMessage, docChunks);
         }
 
+        // Fallback: Wenn keine PDFs gefunden wurden, verwende lokalen PDF-Storage
+        if (pdfLinks.length === 0 && (!weaviateAvailable || !weaviateClient)) {
+            console.log('[STORAGE] No PDFs found in Weaviate, using local PDF storage fallback');
+            
+            // Alle verfügbaren PDFs aus dem lokalen Storage hinzufügen
+            pdfStorage.forEach(pdf => {
+                pdfLinks.push({
+                    title: pdf.title,
+                    url: pdf.fileUrl
+                });
+            });
+            
+            console.log(`[STORAGE] Added ${pdfLinks.length} PDFs from local storage`);
+        }
+
         if (!relevantChunks || relevantChunks.length === 0) {
             console.error('No relevant chunks found after querying Weaviate and local fallback.');
             return res.status(500).json({ reply: "Leider habe ich keine passenden Informationen zu Ihrer Anfrage gefunden. Schreiben Sie uns gerne eine Email mit Ihrer Anfrage an: info@deepdive-ki.de" });
