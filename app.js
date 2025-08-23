@@ -90,6 +90,35 @@ let WEAVIATE_CLASS = process.env.WEAVIATE_CLASS || 'Gymnasiumalsterschulbuero';
   }
 })();
 
+// Weaviate-Verfügbarkeit prüfen
+async function checkWeaviateAvailability() {
+    if (!weaviateClient) {
+        console.warn('[WEAVIATE] Client not initialized');
+        return false;
+    }
+    
+    try {
+        // Einfache Abfrage testen
+        await weaviateClient.graphql.get()
+            .withClassName(WEAVIATE_CLASS)
+            .withFields('_additional { id }')
+            .withLimit(1)
+            .do();
+        
+        console.log('[WEAVIATE] Client is available and responsive');
+        return true;
+    } catch (error) {
+        console.error('[WEAVIATE] Client test failed:', error?.message || error);
+        return false;
+    }
+}
+
+// Weaviate-Status beim Start prüfen
+setTimeout(async () => {
+    weaviateAvailable = await checkWeaviateAvailability();
+    console.log(`[WEAVIATE] Availability check result: ${weaviateAvailable}`);
+}, 5000); // 5 Sekunden nach dem Start prüfen
+
 const app = express();
 
 import { crawlWebsite } from './crawler.js';
@@ -184,46 +213,60 @@ async function getWeaviateStringFields() {
 
 // Ensure the target Weaviate class exists (minimal text schema)
 async function ensureWeaviateClass() {
-  if (!weaviateAvailable || !weaviateClient) return false;
-  try {
-    const schema = await weaviateClient.schema.getter().do();
-    const classes = (schema && schema.classes) || [];
-    const exists = classes.some(c => (c.class === WEAVIATE_CLASS) || (c.class === WEAVIATE_CLASS.replace(/-/g, '_')));
-    if (exists) return true;
-
-    // Try to create a simple class; prefer server-side vectorizer if available
-    const newClass = {
-      class: WEAVIATE_CLASS,
-      vectorizer: 'text2vec-openai', // requires module on server; if missing, Weaviate will error and we fallback below
-      moduleConfig: {
-        'text2vec-openai': { vectorizeClassName: true }
-      },
-      properties: [
-        { name: 'text', dataType: ['text'] },
-        { name: 'index', dataType: ['int'] },
-        { name: 'source', dataType: ['text'] },
-        { name: 'fileUrl', dataType: ['text'] }, // Neue Property für PDF-Links
-        { name: 'title', dataType: ['text'] },   // Neue Property für Dokumenttitel
-      ]
-    };
-    try {
-      await weaviateClient.schema.classCreator().withClass(newClass).do();
-      console.log('[WEAVIATE] class created with text2vec-openai:', WEAVIATE_CLASS);
-      return true;
-    } catch (e) {
-      console.warn('[WEAVIATE] class creation with text2vec-openai failed, retrying without vectorizer:', e.message);
-      // Retry without vectorizer; nearText won't work without a vectorizer, but we keep schema minimal
-      const fallbackClass = { ...newClass };
-      delete fallbackClass.vectorizer;
-      delete fallbackClass.moduleConfig;
-      await weaviateClient.schema.classCreator().withClass(fallbackClass).do();
-      console.log('[WEAVIATE] class created without server-side vectorizer:', WEAVIATE_CLASS);
-      return true;
+    if (!weaviateClient) {
+        console.warn('[WEAVIATE] Client not available for class check');
+        return false;
     }
-  } catch (err) {
-    console.error('[WEAVIATE] ensure class failed:', err?.message || err);
-    return false;
-  }
+    
+    try {
+        // Prüfen ob die Klasse existiert
+        const schema = await weaviateClient.schema.getter().do();
+        const classes = schema.classes || [];
+        const existingClass = classes.find(c => c.class === WEAVIATE_CLASS);
+        
+        if (existingClass) {
+            console.log(`[WEAVIATE] Class "${WEAVIATE_CLASS}" already exists`);
+            return true;
+        }
+        
+        // Klasse erstellen falls sie nicht existiert
+        console.log(`[WEAVIATE] Creating class "${WEAVIATE_CLASS}"...`);
+        
+        const classDefinition = {
+            class: WEAVIATE_CLASS,
+            vectorizer: 'text2vec-openai',
+            moduleConfig: {
+                'text2vec-openai': {
+                    model: 'ada',
+                    modelVersion: '002',
+                    type: 'text'
+                }
+            },
+            properties: [
+                { name: 'text', dataType: ['text'] },
+                { name: 'index', dataType: ['int'] },
+                { name: 'source', dataType: ['text'] },
+                { name: 'fileUrl', dataType: ['text'] }, // Neue Property für PDF-Links
+                { name: 'title', dataType: ['text'] },   // Neue Property für Dokumenttitel
+            ]
+        };
+        
+        await weaviateClient.schema.classCreator().withClass(classDefinition).do();
+        console.log(`[WEAVIATE] Class "${WEAVIATE_CLASS}" created successfully`);
+        return true;
+        
+    } catch (error) {
+        console.error('[WEAVIATE] ensure class failed:', error?.message || error);
+        
+        // Spezifische Fehlerbehandlung
+        if (error?.message?.includes('unauthorized') || error?.message?.includes('401')) {
+            console.error('[WEAVIATE] Authentication failed - check WEAVIATE_API_KEY');
+        } else if (error?.message?.includes('connection') || error?.message?.includes('timeout')) {
+            console.error('[WEAVIATE] Connection failed - check WEAVIATE_HOST');
+        }
+        
+        return false;
+    }
 }
 
 // Upload chunks to Weaviate (idempotent by cleaning previous crawler docs)
@@ -663,28 +706,44 @@ app.post('/chat', async (req, res) => {
                     .filter(Boolean);
             }
             
-            // If no PDF links found in relevant chunks, search specifically for PDFs
+            // Direkte Weaviate-Abfrage für PDFs, falls keine in den relevanten Chunks gefunden wurden
             if (pdfLinks.length === 0) {
                 try {
-                    const pdfResults = await weaviateClient.graphql.get()
-                        .withClassName(WEAVIATE_CLASS)
-                        .withFields('title fileUrl')
-                        .withWhere({
-                            path: ['source'],
-                            operator: 'Equal',
-                            valueText: 'pdf'
-                        })
-                        .withLimit(10)
-                        .do();
+                    console.log('[PDF] No PDFs found in RAG results, performing direct Weaviate search...');
                     
-                    const pdfItems = ((((pdfResults || {}).data || {}).Get || {})[WEAVIATE_CLASS]) || [];
-                    pdfLinks = pdfItems
-                        .filter(item => item.title && item.fileUrl)
-                        .map(item => ({ title: item.title, url: item.fileUrl }));
-                    
-                    console.log('[PDF] found PDFs in direct search:', pdfLinks);
-                } catch (e) {
-                    console.warn('[PDF] direct PDF search failed:', e.message);
+                    if (!weaviateAvailable || !weaviateClient) {
+                        console.warn('[PDF] Weaviate not available for direct PDF search');
+                    } else {
+                        const directPdfResult = await weaviateClient.graphql.get()
+                            .withClassName(WEAVIATE_CLASS)
+                            .withFields('title fileUrl source')
+                            .withWhere({
+                                path: ['source'],
+                                operator: 'Equal',
+                                valueText: 'pdf'
+                            })
+                            .withLimit(5)
+                            .do();
+                        
+                        const directPdfItems = ((((directPdfResult || {}).data || {}).Get || {})[WEAVIATE_CLASS]) || [];
+                        
+                        if (directPdfItems.length > 0) {
+                            console.log(`[PDF] Direct search found ${directPdfItems.length} PDFs`);
+                            directPdfItems.forEach(item => {
+                                if (item.fileUrl) {
+                                    pdfLinks.push({
+                                        title: item.title || 'Dokument',
+                                        url: item.fileUrl
+                                    });
+                                }
+                            });
+                        } else {
+                            console.log('[PDF] Direct search found no PDFs');
+                        }
+                    }
+                } catch (directPdfErr) {
+                    console.error('[PDF] direct PDF search failed:', directPdfErr?.message || directPdfErr);
+                    // Fehler nicht weiterwerfen, da der Chat trotzdem funktionieren soll
                 }
             }
         } catch (e) {
