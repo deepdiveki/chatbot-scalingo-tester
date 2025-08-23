@@ -403,49 +403,88 @@ async function savePdfToWeaviate(title, fileUrl, content = '') {
 
 // Query Weaviate for relevant chunks (if configured)
 async function findRelevantChunksWeaviate(userQuery, topK = 6) {
-  if (!weaviateAvailable || !weaviateClient) return [];
+  let weaviateResults = [];
+  
+  // Versuche Weaviate zu verwenden (falls verfügbar)
+  if (weaviateAvailable && weaviateClient) {
+    try {
+      // Felder dynamisch lesen (z.B. ['content','date','source','test','text'])
+      const fields = await getWeaviateStringFields();
+      const fieldList = (fields && fields.length) ? fields.join(' ') : 'text index source content date title fileUrl';
 
-  // Felder dynamisch lesen (z.B. ['content','date','source','test','text'])
-  const fields = await getWeaviateStringFields();
-  const fieldList = (fields && fields.length) ? fields.join(' ') : 'text index source content date title fileUrl';
+      // Query-Embedding lokal erzeugen (da der Cluster keinen nearText unterstützt)
+      const qVec = await generateEmbedding(userQuery);
 
-  // Query-Embedding lokal erzeugen (da der Cluster keinen nearText unterstützt)
-  const qVec = await generateEmbedding(userQuery);
+      const res = await weaviateClient.graphql.get()
+        .withClassName(WEAVIATE_CLASS)
+        .withFields(`${fieldList} _additional { id distance }`)
+        .withNearVector({ vector: qVec })
+        .withLimit(topK)
+        .do();
 
-  const res = await weaviateClient.graphql.get()
-    .withClassName(WEAVIATE_CLASS)
-    .withFields(`${fieldList} _additional { id distance }`)
-    .withNearVector({ vector: qVec })
-    .withLimit(topK)
-    .do();
+      const items = ((((res || {}).data || {}).Get || {})[WEAVIATE_CLASS]) || [];
+      if (Array.isArray(items)) {
+        weaviateResults = items.map((item) => {
+          const dateStr = item.date || item.Datum || item.datum || item.Date || '';
+          const parts = [];
 
-  const items = ((((res || {}).data || {}).Get || {})[WEAVIATE_CLASS]) || [];
-  if (!Array.isArray(items)) return [];
+          if (dateStr) parts.push(String(Array.isArray(dateStr) ? dateStr.join(' ') : dateStr));
 
-  return items.map((item) => {
-    const dateStr = item.date || item.Datum || item.datum || item.Date || '';
-    const parts = [];
+          const ordered = ['text','content','source','test','index','title','fileUrl']
+            .concat((fields || []).filter(f => !['text','content','source','test','index','date','Datum','Date','datum','title','fileUrl'].includes(f)));
 
-    if (dateStr) parts.push(String(Array.isArray(dateStr) ? dateStr.join(' ') : dateStr));
+          const rest = ordered
+            .map(n => item[n])
+            .filter(Boolean)
+            .map(v => Array.isArray(v) ? v.join(' ') : String(v))
+            .join(' – ');
 
-    const ordered = ['text','content','source','test','index','title','fileUrl']
-      .concat((fields || []).filter(f => !['text','content','source','test','index','date','Datum','Date','datum','title','fileUrl'].includes(f)));
+          if (rest) parts.push(rest);
 
-    const rest = ordered
-      .map(n => item[n])
-      .filter(Boolean)
-      .map(v => Array.isArray(v) ? v.join(' ') : String(v))
-      .join(' – ');
+          // PDF-Link hinzufügen, falls vorhanden
+          if (item.fileUrl) {
+            parts.push(`PDF: ${item.title || 'Dokument'} [${item.fileUrl}]`);
+          }
 
-    if (rest) parts.push(rest);
-
-    // PDF-Link hinzufügen, falls vorhanden
-    if (item.fileUrl) {
-      parts.push(`PDF: ${item.title || 'Dokument'} [${item.fileUrl}]`);
+          return parts.join(' – ').trim();
+        }).filter(Boolean);
+      }
+    } catch (error) {
+      console.warn('[WEAVIATE] Query failed, using local storage fallback:', error?.message || error);
     }
-
-    return parts.join(' – ').trim();
-  }).filter(Boolean);
+  }
+  
+  // Fallback: Lokalen PDF-Storage durchsuchen
+  if (weaviateResults.length === 0 || !weaviateAvailable) {
+    console.log('[STORAGE] Using local PDF storage for search');
+    
+    // Einfache Text-Suche in lokalen PDFs
+    const localResults = pdfStorage
+      .filter(pdf => {
+        const query = userQuery.toLowerCase();
+        return pdf.title.toLowerCase().includes(query) || 
+               pdf.content.toLowerCase().includes(query) ||
+               query.includes('pdf') || query.includes('dokument');
+      })
+      .slice(0, topK)
+      .map(pdf => {
+        const parts = [
+          pdf.content,
+          pdf.source,
+          pdf.title,
+          pdf.fileUrl,
+          `PDF: ${pdf.title} [${pdf.fileUrl}]`
+        ];
+        return parts.join(' – ');
+      });
+    
+    if (localResults.length > 0) {
+      console.log(`[STORAGE] Found ${localResults.length} PDFs in local storage`);
+      return localResults;
+    }
+  }
+  
+  return weaviateResults;
 }
 
 // Function to find the most relevant chunks
