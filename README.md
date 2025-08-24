@@ -1,222 +1,177 @@
-# 🤖 Gymnasium Alster Chatbot Widget
+# KI-Schulbüro - Intelligenter Chatbot für das Gymnasium Alster
 
-Ein einbettbarer Chatbot für das Gymnasium Alster, der als Widget in andere Websites integriert werden kann.
+Ein fortschrittlicher Chatbot mit KI-gestützten Antworten, PDF-Integration und intelligenten Kontext-Features.
 
-## ✨ Features
+## 🚀 **Neue intelligente Features**
 
-- **Einfach einbettbar**: Nur ein Script-Tag erforderlich
-- **Vollständig anpassbar**: Verschiedene Themes, Positionen und Sprachen
-- **Responsive Design**: Funktioniert auf allen Geräten
-- **Datenschutzkonform**: Integrierte DSGVO-konforme Datenschutzrichtlinien
-- **Moderne UI**: Schönes, benutzerfreundliches Design
-- **API-Integration**: Verbindet sich mit der Gymnasium Alster Chatbot-API
+### 1. **Kontext-Bewusstsein** 🧠
+- **Gesprächsverlauf**: Das System merkt sich den kompletten Chat-Verlauf
+- **Session-Management**: Jede Konversation wird mit einer eindeutigen Session-ID verfolgt
+- **Intelligente Referenzen**: Der Bot kann auf vorherige Nachrichten Bezug nehmen
+- **Automatische Bereinigung**: Alte Sessions werden nach 24 Stunden gelöscht
 
-## 🚀 Schnellstart
+### 2. **Personalisierung** 👤
+- **Namen-Erkennung**: Automatische Erkennung von "Ich heiße..." oder "My name is..."
+- **Persönliche Ansprache**: Der Bot verwendet den Namen in seinen Antworten
+- **Profil-Editor**: Benutzer können ihren Namen über den Profil-Button bearbeiten
+- **Session-Persistenz**: Persönliche Einstellungen bleiben über die Session erhalten
 
-### 1. Widget-Datei einbinden
+### 3. **Mehrsprachigkeit** 🌍
+- **Automatische Spracherkennung**: Erkennt Deutsch, Englisch, Französisch und Türkisch
+- **Sprachauswahl-Button**: Manuelle Sprachauswahl über das 🌍-Symbol
+- **Kontextuelle Antworten**: Antwortet in der erkannten/gewählten Sprache
+- **Unterstützte Sprachen**:
+  - 🇩🇪 Deutsch (Standard)
+  - 🇺🇸 English
+  - 🇫🇷 Français
+  - 🇹🇷 Türkçe
 
-Fügen Sie das Widget-Script in Ihre HTML-Datei ein:
+## 📋 **Installation & Setup**
 
-```html
-<script src="chatbot-widget.js"></script>
+### Voraussetzungen
+- Node.js 18+
+- OpenAI API Key
+- Weaviate (optional, Fallback verfügbar)
+
+### Umgebungsvariablen
+```bash
+OPENAI_API_KEY=your_openai_api_key
+WEAVIATE_HOST=your_weaviate_host
+WEAVIATE_API_KEY=your_weaviate_api_key
+WEAVIATE_CLASS=Gymnasiumalsterschulbuero
 ```
 
-### 2. Widget initialisieren
+### Installation
+```bash
+npm install
+npm start
+```
 
+## 🔧 **API-Endpunkte**
+
+### Chat
+```http
+POST /chat
+Content-Type: application/json
+
+{
+  "message": "Deine Nachricht",
+  "memory": "Vorherige Nachrichten",
+  "sessionId": "eindeutige_session_id",
+  "userProfile": {
+    "name": "Max",
+    "language": "de"
+  }
+}
+```
+
+### Response
+```json
+{
+  "reply": "Bot-Antwort",
+  "context": {
+    "language": "de",
+    "userName": "Max",
+    "sessionDuration": 5,
+    "conversationLength": 10
+  }
+}
+```
+
+## 🎯 **Verwendung**
+
+### 1. **Chatbot öffnen**
+- Klicke auf das Chatbot-Symbol (rechts unten)
+- Akzeptiere die Datenschutzrichtlinien
+
+### 2. **Sprache wählen**
+- Klicke auf 🌍 im Header
+- Wähle deine gewünschte Sprache
+
+### 3. **Profil bearbeiten**
+- Klicke auf 👤 im Header
+- Gib deinen Namen ein
+- Der Bot wird dich persönlich ansprechen
+
+### 4. **Kontext nutzen**
+- Der Bot merkt sich deine Anfragen
+- Du kannst auf vorherige Themen Bezug nehmen
+- Beispiel: "Was haben wir vorhin besprochen?"
+
+## 🔍 **Technische Details**
+
+### Kontext-Management
 ```javascript
-ChatbotWidget.init({
-    apiUrl: 'https://your-api.com',
-    position: 'bottom-right',
-    theme: 'default',
-    language: 'de'
-});
-```
-
-### 3. Fertig!
-
-Der Chatbot erscheint automatisch als schwebender Button auf Ihrer Website.
-
-## 📋 Vollständiges Beispiel
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Meine Website</title>
-</head>
-<body>
-    <h1>Willkommen auf meiner Website</h1>
+class ConversationContext {
+    constructor() {
+        this.conversations = new Map(); // sessionId -> conversation data
+        this.userProfiles = new Map();  // sessionId -> user profile
+    }
     
-    <!-- Chatbot Widget einbinden -->
-    <script src="chatbot-widget.js"></script>
-    
-    <script>
-        // Widget initialisieren
-        ChatbotWidget.init({
-            apiUrl: 'https://your-api.com',
-            position: 'bottom-right',
-            theme: 'default',
-            language: 'de',
-            showLogo: true,
-            onMessage: function(sender, message) {
-                console.log(sender + ': ' + message);
-            },
-            onOpen: function() {
-                console.log('Chat geöffnet');
-            },
-            onClose: function() {
-                console.log('Chat geschlossen');
-            }
-        });
-    </script>
-</body>
-</html>
-```
-
-## ⚙️ Konfigurationsoptionen
-
-| Option | Typ | Standard | Beschreibung |
-|--------|-----|----------|--------------|
-| `apiUrl` | string | `'http://localhost:3001'` | URL zu Ihrer Chatbot-API |
-| `position` | string | `'bottom-right'` | Position des Widgets |
-| `theme` | string | `'default'` | Design-Theme |
-| `language` | string | `'de'` | Sprache des Widgets |
-| `showLogo` | boolean | `true` | Logo anzeigen |
-| `zIndex` | number | `1000` | CSS z-index |
-| `onMessage` | function | `null` | Callback für neue Nachrichten |
-| `onOpen` | function | `null` | Callback wenn Chat geöffnet wird |
-| `onClose` | function | `null` | Callback wenn Chat geschlossen wird |
-
-### Verfügbare Positionen
-
-- `'bottom-right'` - Unten rechts (Standard)
-- `'bottom-left'` - Unten links
-- `'top-right'` - Oben rechts
-- `'top-left'` - Oben links
-
-### Verfügbare Themes
-
-- `'default'` - Standard-Theme (blau)
-- `'dark'` - Dunkles Theme
-- `'light'` - Helles Theme
-
-### Verfügbare Sprachen
-
-- `'de'` - Deutsch
-- `'en'` - English
-
-## 🔧 API-Methoden
-
-### Widget steuern
-
-```javascript
-// Widget öffnen
-ChatbotWidget.open();
-
-// Widget schließen
-ChatbotWidget.close();
-
-// Widget entfernen
-ChatbotWidget.destroy();
-```
-
-### Nachrichten senden
-
-```javascript
-// Nachricht an den Bot senden
-ChatbotWidget.sendMessage('Hallo!');
-```
-
-### Status abfragen
-
-```javascript
-// Prüfen ob Chat geöffnet ist
-if (ChatbotWidget.isOpen()) {
-    console.log('Chat ist geöffnet');
+    addMessage(sessionId, role, message, timestamp)
+    getContext(sessionId, maxMessages)
+    updateUserProfile(sessionId, profileData)
+    setLanguage(sessionId, language)
 }
 ```
 
-## 📱 Responsive Design
+### Sprachdetektion
+- **RegEx-basiert**: Erkennt Schlüsselwörter in verschiedenen Sprachen
+- **Fallback**: Standardmäßig Deutsch
+- **Dynamisch**: Kann während der Konversation geändert werden
 
-Das Widget passt sich automatisch an verschiedene Bildschirmgrößen an:
+### Personalisierung
+- **Automatisch**: Erkennt Namen aus der Nachricht
+- **Manuell**: Über den Profil-Editor
+- **Persistent**: Bleibt über die gesamte Session erhalten
 
-- **Desktop**: 350x500px
-- **Tablet**: Automatische Anpassung
-- **Mobile**: Optimiert für Touch-Bedienung
+## 🚀 **Deployment**
 
-## 🎨 Anpassung des Designs
-
-### Themes ändern
-
-```javascript
-ChatbotWidget.init({
-    theme: 'dark' // oder 'light'
-});
+### Lokale Entwicklung
+```bash
+npm run dev
+# Server läuft auf http://localhost:3001
 ```
 
-### Eigene CSS-Styles
-
-Sie können das Widget mit CSS anpassen:
-
-```css
-#chatbot-widget {
-    /* Ihre eigenen Styles */
-}
-
-#chatbot-widget button {
-    /* Button-Styles anpassen */
-}
+### Scalingo
+```bash
+git push scalingo main
+# Automatisches Deployment mit Umgebungsvariablen
 ```
 
-## 🔒 Datenschutz
+## 🔧 **Troubleshooting**
 
-Das Widget ist DSGVO-konform und zeigt automatisch:
+### Kontext funktioniert nicht
+- Prüfe, ob `sessionId` korrekt gesendet wird
+- Überprüfe die Browser-Konsole auf Fehler
+- Stelle sicher, dass der Server läuft
 
-- Datenschutzrichtlinien beim ersten Öffnen
-- Akzeptieren-Button für Datenschutz
-- Link zu den vollständigen Datenschutzrichtlinien
+### Sprache wird nicht erkannt
+- Verwende den Sprachauswahl-Button 🌍
+- Schreibe eine Nachricht in der gewünschten Sprache
+- Prüfe die Browser-Konsole auf Sprach-Informationen
 
-## 🌐 Browser-Unterstützung
+### Personalisierung funktioniert nicht
+- Verwende den Profil-Button 👤
+- Gib deinen Namen ein und klicke "Speichern"
+- Der Bot sollte dich dann persönlich ansprechen
 
-- ✅ Chrome 60+
-- ✅ Firefox 55+
-- ✅ Safari 12+
-- ✅ Edge 79+
+## 📚 **Weitere Features**
 
-## 📁 Projektstruktur
+- **PDF-Integration**: Speichern und Abrufen von Dokumenten
+- **RAG-System**: Intelligente Antworten basierend auf Schuldaten
+- **Fallback-System**: Funktioniert auch ohne Weaviate
+- **Responsive Design**: Optimiert für alle Geräte
+- **Session-Management**: Persistente Konversationen
 
-```
-chatbot-scalingo-tester/
-├── app.js                    # Backend-Server
-├── public/
-│   ├── chatbot-widget.js    # Widget-Script
-│   ├── widget-example.html  # Beispiel-Integration
-│   ├── chatbot.js          # Ursprünglicher Chatbot
-│   └── index.html          # Ursprüngliche Demo-Seite
-├── package.json
-└── README.md
-```
+## 🤝 **Beitragen**
 
-## 🧪 Testen
+1. Fork das Repository
+2. Erstelle einen Feature-Branch
+3. Implementiere deine Änderungen
+4. Erstelle einen Pull Request
 
-1. Starten Sie den Server: `npm start`
-2. Öffnen Sie `public/widget-example.html` im Browser
-3. Testen Sie verschiedene Konfigurationen
-4. Integrieren Sie das Widget in Ihre eigene Website
+## 📄 **Lizenz**
 
-## 📞 Support
-
-Bei Fragen oder Problemen:
-
-- **Email**: info@deepdive-ki.de
-- **Website**: https://www.deepdive-ki.de
-- **Datenschutz**: https://www.deepdive-ki.de/datenschutz
-
-## 📄 Lizenz
-
-Dieses Projekt ist für das Gymnasium Alster entwickelt. Alle Rechte vorbehalten.
-
----
-
-**Entwickelt von DeepDive KI** 🤖
+Dieses Projekt ist Teil des KI-Schulbüro Systems des Gymnasium Alster.
 

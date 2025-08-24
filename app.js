@@ -752,7 +752,7 @@ app.delete('/pdf/all', async (req, res) => {
 // Chatbot route
 app.post('/chat', async (req, res) => {
     console.log("aaaaa");
-    const { message: userMessage, memory } = req.body;
+    const { message: userMessage, memory, sessionId = 'default' } = req.body;
     //userMessage = correctSpelling(userMessage);
 
     if (!userMessage) {
@@ -761,6 +761,38 @@ app.post('/chat', async (req, res) => {
     if (!process.env.OPENAI_API_KEY) {
         return res.status(503).json({ reply: 'Der Dienst ist derzeit nicht korrekt konfiguriert (OPENAI_API_KEY fehlt). Bitte wenden Sie sich an den Administrator.' });
     }
+
+    // Kontext für diese Session abrufen
+    const context = conversationContext.getContext(sessionId);
+    const userProfile = context.userProfile;
+    
+    // Benutzer-Nachricht zum Kontext hinzufügen
+    conversationContext.addMessage(sessionId, 'user', userMessage);
+    
+    // Persönlichkeitserkennung und Sprachdetektion
+    let detectedLanguage = 'de'; // Standard: Deutsch
+    let userName = null;
+    
+    // Sprache aus der Nachricht erkennen
+    if (userMessage.match(/[a-zA-Z]/) && !userMessage.match(/[äöüßÄÖÜ]/)) {
+        if (userMessage.match(/^(hi|hello|good|how|what|when|where|why|can you|please|thank you)/i)) {
+            detectedLanguage = 'en';
+        } else if (userMessage.match(/^(bonjour|salut|comment|quand|où|pourquoi|pouvez-vous|s'il vous plaît|merci)/i)) {
+            detectedLanguage = 'fr';
+        } else if (userMessage.match(/^(merhaba|nasılsın|ne zaman|nerede|neden|yapabilir misin|lütfen|teşekkür)/i)) {
+            detectedLanguage = 'tr';
+        }
+    }
+    
+    // Namen aus der Nachricht extrahieren
+    const nameMatch = userMessage.match(/(?:ich bin|mein name ist|my name is|je m'appelle|benim adım|ich heiße|i'm|i am)\s+([a-zA-ZäöüßÄÖÜ]+)/i);
+    if (nameMatch) {
+        userName = nameMatch[1];
+        conversationContext.updateUserProfile(sessionId, { name: userName });
+    }
+    
+    // Sprache für diese Session setzen
+    conversationContext.setLanguage(sessionId, detectedLanguage);
 
     try {
         let relevantChunks = [];
@@ -874,6 +906,12 @@ ${pdfLinks.map(pdf => `- ${pdf.title}: ${pdf.url}`).join('\n')}` : ''}
 ### User's Message History:
 ${safeMemory}
 
+### User Context:
+- Language: ${detectedLanguage}
+- Name: ${userName || 'Unknown'}
+- Session Duration: ${Math.round(context.sessionDuration / 1000 / 60)} minutes
+- Recent Messages: ${context.recentMessages.map(m => `${m.role}: ${m.message}`).slice(-3).join(' | ')}
+
 ### CRITICAL FORMATTING RULES:
 1. NEVER use markdown links like [Title](URL) for PDFs
 2. ALWAYS use the exact format: "PDF: [Title] [URL]" for PDF documents
@@ -886,6 +924,9 @@ ${safeMemory}
 3. If the question cannot be answered with the provided information, explicitly say so and provide the school contact suggestion.
 4. If there are PDF documents available and the user asks for them, you MUST respond with the exact format: "PDF: [Title] [URL]"
 5. Do not use markdown links [Title](URL) for PDFs - use the exact format "PDF: [Title] [URL]"
+6. PERSONALIZATION: If you know the user's name, use it in your response (e.g., "Hallo ${userName}," or "Guten Tag ${userName},")
+7. LANGUAGE ADAPTATION: Respond in the detected language (${detectedLanguage === 'en' ? 'English' : detectedLanguage === 'fr' ? 'French' : detectedLanguage === 'tr' ? 'Turkish' : 'German'})
+8. CONTEXT AWARENESS: Reference previous parts of the conversation when relevant
 Be polite, professional, and concise.`;
 
         // Call OpenAI GPT API
@@ -897,7 +938,7 @@ Be polite, professional, and concise.`;
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userMessage },
                 ],
-                max_tokens: 200, // Limit the response length
+                max_tokens: 300, // Erhöht für bessere Kontext-Antworten
             },
             {
                 headers: {
@@ -979,8 +1020,19 @@ Be polite, professional, and concise.`;
         
         //console.log('Response sent to client:', botResponse);
 
+        // Bot-Antwort zum Kontext hinzufügen
+        conversationContext.addMessage(sessionId, 'assistant', botResponse);
+        
         // Send the response to the user
-        res.json({ reply: botResponse });
+        res.json({ 
+            reply: botResponse,
+            context: {
+                language: detectedLanguage,
+                userName: userName,
+                sessionDuration: Math.round(context.sessionDuration / 1000 / 60),
+                conversationLength: context.fullHistory.length
+            }
+        });
     } catch (error) {
         console.error('Error communicating with OpenAI API:', error.message);
 
@@ -1153,3 +1205,69 @@ app.listen(PORT, HOST, () => {
 });
 
 export { runCrawlerAndReload };
+
+// Verbessertes Kontext-Management-System
+class ConversationContext {
+    constructor() {
+        this.conversations = new Map(); // sessionId -> conversation data
+        this.userProfiles = new Map();  // sessionId -> user profile
+    }
+
+    // Konversationsverlauf für eine Session speichern
+    addMessage(sessionId, role, message, timestamp = Date.now()) {
+        if (!this.conversations.has(sessionId)) {
+            this.conversations.set(sessionId, []);
+        }
+        
+        const conversation = this.conversations.get(sessionId);
+        conversation.push({ role, message, timestamp });
+        
+        // Nur die letzten 20 Nachrichten behalten (Speicher sparen)
+        if (conversation.length > 20) {
+            conversation.splice(0, conversation.length - 20);
+        }
+    }
+
+    // Kontext für eine Session abrufen
+    getContext(sessionId, maxMessages = 10) {
+        const conversation = this.conversations.get(sessionId) || [];
+        const recentMessages = conversation.slice(-maxMessages);
+        
+        return {
+            recentMessages,
+            fullHistory: conversation,
+            userProfile: this.userProfiles.get(sessionId) || null,
+            sessionDuration: conversation.length > 0 ? Date.now() - conversation[0].timestamp : 0
+        };
+    }
+
+    // Benutzerprofil aktualisieren
+    updateUserProfile(sessionId, profileData) {
+        const existingProfile = this.userProfiles.get(sessionId) || {};
+        this.userProfiles.set(sessionId, { ...existingProfile, ...profileData });
+    }
+
+    // Sprache für eine Session setzen
+    setLanguage(sessionId, language) {
+        this.updateUserProfile(sessionId, { language });
+    }
+
+    // Session bereinigen (ältere als 24h)
+    cleanup() {
+        const now = Date.now();
+        const maxAge = 24 * 60 * 60 * 1000; // 24 Stunden
+        
+        for (const [sessionId, conversation] of this.conversations.entries()) {
+            if (conversation.length > 0 && (now - conversation[0].timestamp) > maxAge) {
+                this.conversations.delete(sessionId);
+                this.userProfiles.delete(sessionId);
+            }
+        }
+    }
+}
+
+// Globale Instanz des Kontext-Managers
+const conversationContext = new ConversationContext();
+
+// Alle 6 Stunden aufräumen
+setInterval(() => conversationContext.cleanup(), 6 * 60 * 60 * 1000);

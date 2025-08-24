@@ -366,6 +366,27 @@ function createMessage(message, sender) {
     return [messageWrapper, messageElement];
 }
 
+// Session-ID-Generierung für besseren Kontext
+function generateSessionId() {
+    if (!sessionStorage.getItem("chatbotSessionId")) {
+        const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        sessionStorage.setItem("chatbotSessionId", sessionId);
+    }
+    return sessionStorage.getItem("chatbotSessionId");
+}
+
+// Erweiterte Kontext-Verwaltung
+function updateUserProfile(profileData) {
+    const currentProfile = JSON.parse(sessionStorage.getItem("chatbotUserProfile") || '{}');
+    const updatedProfile = { ...currentProfile, ...profileData };
+    sessionStorage.setItem("chatbotUserProfile", JSON.stringify(updatedProfile));
+    return updatedProfile;
+}
+
+function getUserProfile() {
+    return JSON.parse(sessionStorage.getItem("chatbotUserProfile") || '{}');
+}
+
 // Wait for the DOM to load
 document.addEventListener("DOMContentLoaded", () => {
     // Create chatbot toggle button
@@ -493,13 +514,192 @@ document.addEventListener("DOMContentLoaded", () => {
     header.style.position = "relative"; // needed for the dropdown positioning
 
     const title = document.createElement("div");
-    title.innerHTML = `<strong>DBR</strong> · KI-Schulbüro`;
+    title.innerHTML = `<strong>Gymnasium Alster</strong> · KI-Schulbüro`;
     title.style.fontSize = "15px";
     title.style.color = "#333";
 
     // Spacer to push controls to the right
     const headerSpacer = document.createElement("div");
     headerSpacer.style.flex = "1";
+
+    // Sprachauswahl-Button
+    const languageButton = document.createElement("button");
+    languageButton.setAttribute("aria-label", "Sprache wählen");
+    languageButton.innerHTML = "🌍";
+    languageButton.style.fontSize = "16px";
+    languageButton.style.lineHeight = "16px";
+    languageButton.style.background = "transparent";
+    languageButton.style.border = "none";
+    languageButton.style.color = "#666";
+    languageButton.style.cursor = "pointer";
+    languageButton.style.padding = "4px 8px";
+    languageButton.style.borderRadius = "6px";
+    languageButton.style.marginRight = "8px";
+    languageButton.title = "Sprache wählen";
+    languageButton.addEventListener("mouseenter", () => {
+        languageButton.style.backgroundColor = "#f2f2f2";
+        languageButton.style.color = "#333";
+    });
+    languageButton.addEventListener("mouseleave", () => {
+        languageButton.style.backgroundColor = "transparent";
+        languageButton.style.color = "#666";
+    });
+
+    // Sprachauswahl-Dropdown
+    const languageMenu = document.createElement("div");
+    languageMenu.id = "language-menu";
+    languageMenu.style.position = "absolute";
+    languageMenu.style.top = "44px";
+    languageMenu.style.right = "80px";
+    languageMenu.style.background = "#fff";
+    languageMenu.style.border = "1px solid #eee";
+    languageMenu.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
+    languageMenu.style.borderRadius = "10px";
+    languageMenu.style.padding = "6px 0";
+    languageMenu.style.display = "none";
+    languageMenu.style.zIndex = "3000";
+
+    const languages = [
+        { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+        { code: 'en', name: 'English', flag: '🇺🇸' },
+        { code: 'fr', name: 'Français', flag: '🇫🇷' },
+        { code: 'tr', name: 'Türkçe', flag: '🇹🇷' }
+    ];
+
+    languages.forEach(lang => {
+        const langItem = document.createElement("button");
+        langItem.type = "button";
+        langItem.style.display = "block";
+        langItem.style.width = "100%";
+        langItem.style.textAlign = "left";
+        langItem.style.background = "transparent";
+        langItem.style.border = "none";
+        langItem.style.padding = "8px 14px";
+        langItem.style.cursor = "pointer";
+        langItem.style.fontSize = "14px";
+        langItem.innerHTML = `${lang.flag} ${lang.name}`;
+        langItem.addEventListener("mouseenter", () => langItem.style.backgroundColor = "#f7f7f7");
+        langItem.addEventListener("mouseleave", () => langItem.style.backgroundColor = "transparent");
+        langItem.addEventListener("click", () => {
+            updateUserProfile({ language: lang.code });
+            languageButton.innerHTML = lang.flag;
+            languageMenu.style.display = "none";
+            // Sofortige Sprachänderung senden
+            const sessionId = generateSessionId();
+            const userProfile = getUserProfile();
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: `Ich möchte auf ${lang.name} kommunizieren.`, 
+                    memory: "",
+                    sessionId: sessionId,
+                    userProfile: userProfile
+                }),
+            });
+        });
+        languageMenu.appendChild(langItem);
+    });
+
+    languageButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        languageMenu.style.display = languageMenu.style.display === "block" ? "none" : "block";
+    });
+
+    // Personalisierungs-Button
+    const profileButton = document.createElement("button");
+    profileButton.setAttribute("aria-label", "Profil bearbeiten");
+    profileButton.innerHTML = "👤";
+    profileButton.style.fontSize = "16px";
+    profileButton.style.lineHeight = "16px";
+    profileButton.style.background = "transparent";
+    profileButton.style.border = "none";
+    profileButton.style.color = "#666";
+    profileButton.style.cursor = "pointer";
+    profileButton.style.padding = "4px 8px";
+    profileButton.style.borderRadius = "6px";
+    profileButton.style.marginRight = "8px";
+    profileButton.title = "Profil bearbeiten";
+    profileButton.addEventListener("mouseenter", () => {
+        profileButton.style.backgroundColor = "#f2f2f2";
+        profileButton.style.color = "#333";
+    });
+    profileButton.addEventListener("mouseleave", () => {
+        profileButton.style.backgroundColor = "transparent";
+        profileButton.style.color = "#666";
+    });
+
+    // Profil-Dialog
+    const profileDialog = document.createElement("div");
+    profileDialog.id = "profile-dialog";
+    profileDialog.style.position = "absolute";
+    profileDialog.style.top = "44px";
+    profileDialog.style.right = "40px";
+    profileDialog.style.background = "#fff";
+    profileDialog.style.border = "1px solid #eee";
+    profileDialog.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
+    profileDialog.style.borderRadius = "10px";
+    profileDialog.style.padding = "16px";
+    profileDialog.style.display = "none";
+    profileDialog.style.zIndex = "3000";
+    profileDialog.style.minWidth = "200px";
+
+    const profileTitle = document.createElement("div");
+    profileTitle.textContent = "Profil bearbeiten";
+    profileTitle.style.fontWeight = "bold";
+    profileTitle.style.marginBottom = "12px";
+    profileTitle.style.fontSize = "14px";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.placeholder = "Dein Name";
+    nameInput.style.width = "100%";
+    nameInput.style.padding = "8px";
+    nameInput.style.border = "1px solid #ddd";
+    nameInput.style.borderRadius = "6px";
+    nameInput.style.marginBottom = "12px";
+    nameInput.style.fontSize = "14px";
+    nameInput.value = getUserProfile().name || "";
+
+    const saveButton = document.createElement("button");
+    saveButton.textContent = "Speichern";
+    saveButton.style.background = "rgb(62, 125, 255)";
+    saveButton.style.color = "white";
+    saveButton.style.border = "none";
+    saveButton.style.padding = "8px 16px";
+    saveButton.style.borderRadius = "6px";
+    saveButton.style.cursor = "pointer";
+    saveButton.style.fontSize = "14px";
+
+    saveButton.addEventListener("click", () => {
+        const newName = nameInput.value.trim();
+        if (newName) {
+            updateUserProfile({ name: newName });
+            profileDialog.style.display = "none";
+            // Sofortige Personalisierung senden
+            const sessionId = generateSessionId();
+            const userProfile = getUserProfile();
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: `Hallo, ich heiße ${newName}.`, 
+                    memory: "",
+                    sessionId: sessionId,
+                    userProfile: userProfile
+                }),
+            });
+        }
+    });
+
+    profileDialog.appendChild(profileTitle);
+    profileDialog.appendChild(nameInput);
+    profileDialog.appendChild(saveButton);
+
+    profileButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        profileDialog.style.display = profileDialog.style.display === "block" ? "none" : "block";
+    });
 
     // Three-dots options button (⋮)
     const optionsButton = document.createElement("button");
@@ -559,6 +759,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Hide menu when clicking outside
     document.addEventListener("click", () => {
         if (menu.style.display === "block") menu.style.display = "none";
+        if (languageMenu.style.display === "block") languageMenu.style.display = "none";
+        if (profileDialog.style.display === "block") profileDialog.style.display = "none";
     });
 
     // Toggle expanded size when clicking the menu item
@@ -607,9 +809,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     header.appendChild(title);
     header.appendChild(headerSpacer);
+    header.appendChild(languageButton);
+    header.appendChild(profileButton);
     header.appendChild(optionsButton);
     header.appendChild(closeButton);
-    header.appendChild(menu);
+    header.appendChild(languageMenu);
+    header.appendChild(profileDialog);
     chatbotContainer.appendChild(header);
 
     // Add chat area
@@ -761,6 +966,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const lastMessages = getLastMessages(3);
             const memory = `${lastMessages.join('; ')}`;
 
+            // Session-ID und Benutzerprofil für besseren Kontext
+            const sessionId = generateSessionId();
+            const userProfile = getUserProfile();
+
             // Intelligente API-URL-Erkennung für lokale und Produktionsumgebung
             let API_CHAT_URL;
             const currentHost = window.location.hostname;
@@ -780,17 +989,39 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             console.log('📡 API URL:', API_CHAT_URL);
+            console.log('🆔 Session ID:', sessionId);
+            console.log('👤 User Profile:', userProfile);
             
             fetch(API_CHAT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMessage, memory: memory }),
+                body: JSON.stringify({ 
+                    message: userMessage, 
+                    memory: memory,
+                    sessionId: sessionId,
+                    userProfile: userProfile
+                }),
             })
                 .then(response => response.json())
                 .then(data => {
 
                     removeTypingIndicator(chatArea);
                     if (data && data.reply) {
+
+                        // Kontext-Informationen verarbeiten
+                        if (data.context) {
+                            console.log('🔄 Kontext aktualisiert:', data.context);
+                            
+                            // Benutzerprofil aktualisieren
+                            if (data.context.userName) {
+                                updateUserProfile({ name: data.context.userName });
+                            }
+                            
+                            // Sprache im UI anzeigen (optional)
+                            if (data.context.language && data.context.language !== 'de') {
+                                console.log(`🌍 Sprache erkannt: ${data.context.language}`);
+                            }
+                        }
 
                         // Call createMessage
                         const [messageWrapper, messageElement] = createMessage(data.reply, "bot");
