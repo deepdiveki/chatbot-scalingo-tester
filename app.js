@@ -912,6 +912,14 @@ ${safeMemory}
 - Session Duration: ${Math.round(context.sessionDuration / 1000 / 60)} minutes
 - Recent Messages: ${context.recentMessages.map(m => `${m.role}: ${m.message}`).slice(-3).join(' | ')}
 
+### Appointment Management:
+You can help users book, cancel, and check appointments. Use these commands when users ask about appointments:
+
+1. **Check Availability**: When users ask about available times, use: "CHECK_AVAILABILITY: [DATE]"
+2. **Book Appointment**: When users want to book, use: "BOOK_APPOINTMENT: [DATE] [TIME] [REASON]"
+3. **Show User Appointments**: When users ask about their appointments, use: "SHOW_APPOINTMENTS"
+4. **Cancel Appointment**: When users want to cancel, use: "CANCEL_APPOINTMENT: [ID]"
+
 ### CRITICAL FORMATTING RULES:
 1. NEVER use markdown links like [Title](URL) for PDFs
 2. ALWAYS use the exact format: "PDF: [Title] [URL]" for PDF documents
@@ -927,6 +935,7 @@ ${safeMemory}
 6. PERSONALIZATION: If you know the user's name, use it in your response (e.g., "Hallo ${userName}," or "Guten Tag ${userName},")
 7. LANGUAGE ADAPTATION: Respond in the detected language (${detectedLanguage === 'en' ? 'English' : detectedLanguage === 'fr' ? 'French' : detectedLanguage === 'tr' ? 'Turkish' : 'German'})
 8. CONTEXT AWARENESS: Reference previous parts of the conversation when relevant
+9. APPOINTMENT HELP: If users ask about appointments, offer to help them book, check availability, or manage existing appointments
 Be polite, professional, and concise.`;
 
         // Call OpenAI GPT API
@@ -1022,6 +1031,87 @@ Be polite, professional, and concise.`;
 
         // Bot-Antwort zum Kontext hinzufügen
         conversationContext.addMessage(sessionId, 'assistant', botResponse);
+        
+        // Termin-Management-Befehle verarbeiten
+        if (botResponse.includes('CHECK_AVAILABILITY:')) {
+            const match = botResponse.match(/CHECK_AVAILABILITY:\s*(\d{4}-\d{2}-\d{2})/);
+            if (match) {
+                const date = match[1];
+                const availableSlots = appointmentManager.getAvailableSlots(new Date(date));
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('de-DE', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                botResponse = botResponse.replace(
+                    /CHECK_AVAILABILITY:\s*\d{4}-\d{2}-\d{2}/,
+                    `Verfügbare Termine für ${formattedDate}:\n${availableSlots.map(slot => `• ${slot} Uhr`).join('\n')}\n\nMöchten Sie einen Termin buchen?`
+                );
+            }
+        }
+        
+        if (botResponse.includes('BOOK_APPOINTMENT:')) {
+            const match = botResponse.match(/BOOK_APPOINTMENT:\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\s+(.+)/);
+            if (match) {
+                const [, date, time, reason] = match;
+                const result = appointmentManager.bookAppointment(userName, date, time, reason, sessionId);
+                
+                if (result.success) {
+                    botResponse = botResponse.replace(
+                        /BOOK_APPOINTMENT:\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+.+/,
+                        `✅ ${result.message}\n\nTermin-Details:\n• Datum: ${result.appointment.date}\n• Uhrzeit: ${result.appointment.time} Uhr\n• Grund: ${result.appointment.reason}\n• Termin-ID: ${result.appointment.id}`
+                    );
+                } else {
+                    botResponse = botResponse.replace(
+                        /BOOK_APPOINTMENT:\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+.+/,
+                        `❌ ${result.error}\n\nBitte wählen Sie einen anderen Termin.`
+                    );
+                }
+            }
+        }
+        
+        if (botResponse.includes('SHOW_APPOINTMENTS')) {
+            const userAppointments = appointmentManager.getUserAppointments(sessionId);
+            
+            if (userAppointments.length > 0) {
+                const appointmentsList = userAppointments.map(apt => 
+                    `• ${apt.date} um ${apt.time} Uhr - ${apt.reason} (ID: ${apt.id})`
+                ).join('\n');
+                
+                botResponse = botResponse.replace(
+                    /SHOW_APPOINTMENTS/,
+                    `Ihre gebuchten Termine:\n${appointmentsList}\n\nMöchten Sie einen Termin stornieren?`
+                );
+            } else {
+                botResponse = botResponse.replace(
+                    /SHOW_APPOINTMENTS/,
+                    `Sie haben derzeit keine gebuchten Termine. Möchten Sie einen neuen Termin buchen?`
+                );
+            }
+        }
+        
+        if (botResponse.includes('CANCEL_APPOINTMENT:')) {
+            const match = botResponse.match(/CANCEL_APPOINTMENT:\s*(\d+)/);
+            if (match) {
+                const appointmentId = parseInt(match[1]);
+                const result = appointmentManager.cancelAppointment(appointmentId, sessionId);
+                
+                if (result.success) {
+                    botResponse = botResponse.replace(
+                        /CANCEL_APPOINTMENT:\s*\d+/,
+                        `✅ ${result.message}`
+                    );
+                } else {
+                    botResponse = botResponse.replace(
+                        /CANCEL_APPOINTMENT:\s*\d+/,
+                        `❌ ${result.error}`
+                    );
+                }
+            }
+        }
         
         // Send the response to the user
         res.json({ 
@@ -1271,3 +1361,272 @@ const conversationContext = new ConversationContext();
 
 // Alle 6 Stunden aufräumen
 setInterval(() => conversationContext.cleanup(), 6 * 60 * 60 * 1000);
+
+// Termin-Management-System
+class AppointmentManager {
+    constructor() {
+        this.appointments = new Map(); // appointmentId -> appointment data
+        this.availability = new Map(); // date -> available slots
+        this.nextId = 1;
+        this.initializeDefaultAvailability();
+    }
+
+    // Standard-Verfügbarkeiten für die nächsten 30 Tage
+    initializeDefaultAvailability() {
+        const today = new Date();
+        for (let i = 0; i < 30; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            // Montag-Freitag: 8:00-16:00, Samstag: 9:00-12:00
+            const dayOfWeek = date.getDay();
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Montag-Freitag
+                this.availability.set(dateStr, [
+                    '08:00', '09:00', '10:00', '11:00', '12:00',
+                    '13:00', '14:00', '15:00', '16:00'
+                ]);
+            } else if (dayOfWeek === 6) { // Samstag
+                this.availability.set(dateStr, ['09:00', '10:00', '11:00', '12:00']);
+            } else { // Sonntag
+                this.availability.set(dateStr, []);
+            }
+        }
+    }
+
+    // Verfügbare Termine für ein Datum abrufen
+    getAvailableSlots(date) {
+        const dateStr = date.toISOString().split('T')[0];
+        const availableSlots = this.availability.get(dateStr) || [];
+        const bookedSlots = this.getBookedSlotsForDate(dateStr);
+        
+        return availableSlots.filter(slot => !bookedSlots.includes(slot));
+    }
+
+    // Bereits gebuchte Termine für ein Datum
+    getBookedSlotsForDate(dateStr) {
+        const booked = [];
+        for (const appointment of this.appointments.values()) {
+            if (appointment.date === dateStr) {
+                booked.push(appointment.time);
+            }
+        }
+        return booked;
+    }
+
+    // Termin buchen
+    bookAppointment(userName, date, time, reason, sessionId) {
+        const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
+        const availableSlots = this.getAvailableSlots(new Date(dateStr));
+        
+        if (!availableSlots.includes(time)) {
+            return { success: false, error: 'Termin ist nicht verfügbar' };
+        }
+
+        const appointment = {
+            id: this.nextId++,
+            userName: userName || 'Unbekannt',
+            date: dateStr,
+            time: time,
+            reason: reason || 'Kein Grund angegeben',
+            sessionId: sessionId,
+            createdAt: new Date().toISOString(),
+            status: 'confirmed'
+        };
+
+        this.appointments.set(appointment.id, appointment);
+        
+        return { 
+            success: true, 
+            appointment: appointment,
+            message: `Termin erfolgreich gebucht für ${dateStr} um ${time} Uhr`
+        };
+    }
+
+    // Termin stornieren
+    cancelAppointment(appointmentId, sessionId) {
+        const appointment = this.appointments.get(appointmentId);
+        
+        if (!appointment) {
+            return { success: false, error: 'Termin nicht gefunden' };
+        }
+        
+        if (appointment.sessionId !== sessionId) {
+            return { success: false, error: 'Keine Berechtigung zum Stornieren' };
+        }
+
+        this.appointments.delete(appointmentId);
+        
+        return { 
+            success: true, 
+            message: `Termin für ${appointment.date} um ${appointment.time} Uhr wurde storniert`
+        };
+    }
+
+    // Termine eines Benutzers abrufen
+    getUserAppointments(sessionId) {
+        return Array.from(this.appointments.values())
+            .filter(appointment => appointment.sessionId === sessionId)
+            .sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
+    }
+
+    // Alle Termine (für Admin)
+    getAllAppointments() {
+        return Array.from(this.appointments.values())
+            .sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
+    }
+
+    // Verfügbarkeit für einen Zeitraum
+    getAvailabilityForRange(startDate, endDate) {
+        const availability = {};
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            availability[dateStr] = this.getAvailableSlots(d);
+        }
+        
+        return availability;
+    }
+}
+
+// Globale Instanz des Termin-Managers
+const appointmentManager = new AppointmentManager();
+
+// Termin-Management API-Endpunkte
+
+// Verfügbarkeit für ein Datum abrufen
+app.get('/appointments/availability/:date', (req, res) => {
+    try {
+        const { date } = req.params;
+        const availableSlots = appointmentManager.getAvailableSlots(new Date(date));
+        
+        res.json({
+            success: true,
+            date: date,
+            availableSlots: availableSlots,
+            totalSlots: availableSlots.length
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Abrufen der Verfügbarkeit: ' + error.message
+        });
+    }
+});
+
+// Verfügbarkeit für einen Zeitraum abrufen
+app.get('/appointments/availability', (req, res) => {
+    try {
+        const { start, end } = req.query;
+        const startDate = start || new Date().toISOString().split('T')[0];
+        const endDate = end || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        const availability = appointmentManager.getAvailabilityForRange(startDate, endDate);
+        
+        res.json({
+            success: true,
+            startDate: startDate,
+            endDate: endDate,
+            availability: availability
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Abrufen der Verfügbarkeit: ' + error.message
+        });
+    }
+});
+
+// Termin buchen
+app.post('/appointments/book', (req, res) => {
+    try {
+        const { userName, date, time, reason, sessionId } = req.body;
+        
+        if (!date || !time || !sessionId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Datum, Uhrzeit und Session-ID sind erforderlich'
+            });
+        }
+
+        const result = appointmentManager.bookAppointment(userName, date, time, reason, sessionId);
+        
+        if (result.success) {
+            res.json(result);
+        } else {
+            res.status(400).json(result);
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Buchen des Termins: ' + error.message
+        });
+    }
+});
+
+// Termin stornieren
+app.delete('/appointments/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { sessionId } = req.body;
+        
+        if (!sessionId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Session-ID ist erforderlich'
+            });
+        }
+
+        const result = appointmentManager.cancelAppointment(parseInt(id), sessionId);
+        
+        if (result.success) {
+            res.json(result);
+        } else {
+            res.status(400).json(result);
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Stornieren des Termins: ' + error.message
+        });
+    }
+});
+
+// Termine eines Benutzers abrufen
+app.get('/appointments/user/:sessionId', (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const appointments = appointmentManager.getUserAppointments(sessionId);
+        
+        res.json({
+            success: true,
+            appointments: appointments,
+            count: appointments.length
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Abrufen der Termine: ' + error.message
+        });
+    }
+});
+
+// Alle Termine abrufen (Admin)
+app.get('/appointments/all', (req, res) => {
+    try {
+        const appointments = appointmentManager.getAllAppointments();
+        
+        res.json({
+            success: true,
+            appointments: appointments,
+            count: appointments.length
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Abrufen aller Termine: ' + error.message
+        });
+    }
+});

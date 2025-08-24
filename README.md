@@ -1,6 +1,6 @@
 # KI-Schulbüro - Intelligenter Chatbot für das Gymnasium Alster
 
-Ein fortschrittlicher Chatbot mit KI-gestützten Antworten, PDF-Integration und intelligenten Kontext-Features.
+Ein fortschrittlicher Chatbot mit KI-gestützten Antworten, PDF-Integration, intelligenten Kontext-Features und vollständigem Termin-Management.
 
 ## 🚀 **Neue intelligente Features**
 
@@ -25,6 +25,13 @@ Ein fortschrittlicher Chatbot mit KI-gestützten Antworten, PDF-Integration und 
   - 🇺🇸 English
   - 🇫🇷 Français
   - 🇹🇷 Türkçe
+
+### 4. **Termin-Management** 📅 **NEU!**
+- **Verfügbarkeitsprüfung**: Sofortige Anzeige freier Termine für jedes Datum
+- **Termin-Buchung**: Direkte Buchung über den Chat oder das Interface
+- **Termin-Verwaltung**: Anzeige, Bearbeitung und Stornierung eigener Termine
+- **Intelligente Zeitslots**: Automatische Verwaltung von 8:00-16:00 Uhr (Mo-Fr), 9:00-12:00 Uhr (Sa)
+- **Session-basierte Verwaltung**: Jeder Benutzer sieht nur seine eigenen Termine
 
 ## 📋 **Installation & Setup**
 
@@ -65,6 +72,37 @@ Content-Type: application/json
 }
 ```
 
+### Termin-Management **NEU!**
+```http
+# Verfügbarkeit prüfen
+GET /appointments/availability/:date
+
+# Verfügbarkeit für Zeitraum
+GET /appointments/availability?start=2025-08-26&end=2025-09-02
+
+# Termin buchen
+POST /appointments/book
+{
+  "userName": "Max Mustermann",
+  "date": "2025-08-26",
+  "time": "10:00",
+  "reason": "Beratungsgespräch",
+  "sessionId": "session_id"
+}
+
+# Termin stornieren
+DELETE /appointments/:id
+{
+  "sessionId": "session_id"
+}
+
+# Benutzer-Termine abrufen
+GET /appointments/user/:sessionId
+
+# Alle Termine (Admin)
+GET /appointments/all
+```
+
 ### Response
 ```json
 {
@@ -93,7 +131,14 @@ Content-Type: application/json
 - Gib deinen Namen ein
 - Der Bot wird dich persönlich ansprechen
 
-### 4. **Kontext nutzen**
+### 4. **Termine verwalten** **NEU!**
+- Klicke auf 📅 im Header
+- **Verfügbarkeit prüfen**: Wähle ein Datum und prüfe freie Termine
+- **Termin buchen**: Wähle Datum, Uhrzeit und Grund
+- **Meine Termine**: Sieh alle deine gebuchten Termine
+- **Termin stornieren**: Storniere Termine direkt im Interface
+
+### 5. **Kontext nutzen**
 - Der Bot merkt sich deine Anfragen
 - Du kannst auf vorherige Themen Bezug nehmen
 - Beispiel: "Was haben wir vorhin besprochen?"
@@ -112,6 +157,21 @@ class ConversationContext {
     getContext(sessionId, maxMessages)
     updateUserProfile(sessionId, profileData)
     setLanguage(sessionId, language)
+}
+```
+
+### Termin-Management **NEU!**
+```javascript
+class AppointmentManager {
+    constructor() {
+        this.appointments = new Map(); // appointmentId -> appointment data
+        this.availability = new Map(); // date -> available slots
+    }
+    
+    getAvailableSlots(date)
+    bookAppointment(userName, date, time, reason, sessionId)
+    cancelAppointment(appointmentId, sessionId)
+    getUserAppointments(sessionId)
 }
 ```
 
@@ -156,6 +216,12 @@ git push scalingo main
 - Gib deinen Namen ein und klicke "Speichern"
 - Der Bot sollte dich dann persönlich ansprechen
 
+### Termin-Management funktioniert nicht **NEU!**
+- Prüfe, ob der 📅-Button im Header sichtbar ist
+- Überprüfe die Browser-Konsole auf API-Fehler
+- Stelle sicher, dass alle Felder ausgefüllt sind
+- Prüfe, ob das Datum in der Zukunft liegt
+
 ## 📚 **Weitere Features**
 
 - **PDF-Integration**: Speichern und Abrufen von Dokumenten
@@ -163,6 +229,7 @@ git push scalingo main
 - **Fallback-System**: Funktioniert auch ohne Weaviate
 - **Responsive Design**: Optimiert für alle Geräte
 - **Session-Management**: Persistente Konversationen
+- **Termin-System**: Vollständiges Buchungs- und Verwaltungssystem
 
 ## 🤝 **Beitragen**
 

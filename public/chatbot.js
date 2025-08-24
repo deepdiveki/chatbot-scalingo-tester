@@ -629,6 +629,353 @@ document.addEventListener("DOMContentLoaded", () => {
         profileButton.style.color = "#666";
     });
 
+    // Termin-Management-Button
+    const appointmentButton = document.createElement("button");
+    appointmentButton.setAttribute("aria-label", "Termine verwalten");
+    appointmentButton.innerHTML = "📅";
+    appointmentButton.style.fontSize = "16px";
+    appointmentButton.style.lineHeight = "16px";
+    appointmentButton.style.background = "transparent";
+    appointmentButton.style.border = "none";
+    appointmentButton.style.color = "#666";
+    appointmentButton.style.cursor = "pointer";
+    appointmentButton.style.padding = "4px 8px";
+    appointmentButton.style.borderRadius = "6px";
+    appointmentButton.style.marginRight = "8px";
+    appointmentButton.title = "Termine verwalten";
+    appointmentButton.addEventListener("mouseenter", () => {
+        appointmentButton.style.backgroundColor = "#f2f2f2";
+        appointmentButton.style.color = "#333";
+    });
+    appointmentButton.addEventListener("mouseleave", () => {
+        appointmentButton.style.backgroundColor = "transparent";
+        appointmentButton.style.color = "#666";
+    });
+
+    // Termin-Management-Interface
+    const appointmentInterface = document.createElement("div");
+    appointmentInterface.id = "appointment-interface";
+    appointmentInterface.style.position = "absolute";
+    appointmentInterface.style.top = "44px";
+    appointmentInterface.style.right = "0px";
+    appointmentInterface.style.background = "#fff";
+    appointmentInterface.style.border = "1px solid #eee";
+    appointmentInterface.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
+    appointmentInterface.style.borderRadius = "10px";
+    appointmentInterface.style.padding = "20px";
+    appointmentInterface.style.display = "none";
+    appointmentInterface.style.zIndex = "3000";
+    appointmentInterface.style.minWidth = "350px";
+    appointmentInterface.style.maxHeight = "500px";
+    appointmentInterface.style.overflowY = "auto";
+
+    // Termin-Interface Header
+    const appointmentHeader = document.createElement("div");
+    appointmentHeader.innerHTML = "<h3 style='margin: 0 0 16px 0; color: #333;'>📅 Termin-Management</h3>";
+    
+    // Verfügbarkeit prüfen
+    const availabilitySection = document.createElement("div");
+    availabilitySection.style.marginBottom = "20px";
+    availabilitySection.innerHTML = "<h4 style='margin: 0 0 8px 0; color: #666;'>Verfügbarkeit prüfen</h4>";
+    
+    const dateInput = document.createElement("input");
+    dateInput.type = "date";
+    dateInput.style.width = "100%";
+    dateInput.style.padding = "8px";
+    dateInput.style.border = "1px solid #ddd";
+    dateInput.style.borderRadius = "6px";
+    dateInput.style.marginBottom = "8px";
+    dateInput.min = new Date().toISOString().split('T')[0];
+    
+    const checkAvailabilityBtn = document.createElement("button");
+    checkAvailabilityBtn.textContent = "Verfügbarkeit prüfen";
+    checkAvailabilityBtn.style.background = "rgb(62, 125, 255)";
+    checkAvailabilityBtn.style.color = "white";
+    checkAvailabilityBtn.style.border = "none";
+    checkAvailabilityBtn.style.padding = "8px 16px";
+    checkAvailabilityBtn.style.borderRadius = "6px";
+    checkAvailabilityBtn.style.cursor = "pointer";
+    checkAvailabilityBtn.style.fontSize = "14px";
+    checkAvailabilityBtn.style.width = "100%";
+    
+    const availabilityResult = document.createElement("div");
+    availabilityResult.style.marginTop = "8px";
+    availabilityResult.style.padding = "8px";
+    availabilityResult.style.background = "#f8f9fa";
+    availabilityResult.style.borderRadius = "6px";
+    availabilityResult.style.fontSize = "14px";
+    availabilityResult.style.display = "none";
+    
+    checkAvailabilityBtn.addEventListener("click", async () => {
+        const selectedDate = dateInput.value;
+        if (!selectedDate) {
+            availabilityResult.textContent = "Bitte wählen Sie ein Datum aus.";
+            availabilityResult.style.display = "block";
+            return;
+        }
+        
+        try {
+            const sessionId = generateSessionId();
+            const response = await fetch(`/appointments/availability/${selectedDate}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const dateObj = new Date(selectedDate);
+                const formattedDate = dateObj.toLocaleDateString('de-DE', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                availabilityResult.innerHTML = `
+                    <strong>Verfügbare Termine für ${formattedDate}:</strong><br>
+                    ${data.availableSlots.map(slot => `• ${slot} Uhr`).join('<br>')}
+                `;
+            } else {
+                availabilityResult.textContent = "Fehler beim Abrufen der Verfügbarkeit.";
+            }
+        } catch (error) {
+            availabilityResult.textContent = "Fehler beim Abrufen der Verfügbarkeit.";
+        }
+        
+        availabilityResult.style.display = "block";
+    });
+    
+    availabilitySection.appendChild(dateInput);
+    availabilitySection.appendChild(checkAvailabilityBtn);
+    availabilitySection.appendChild(availabilityResult);
+    
+    // Termin buchen
+    const bookingSection = document.createElement("div");
+    bookingSection.style.marginBottom = "20px";
+    bookingSection.innerHTML = "<h4 style='margin: 0 0 8px 0; color: #666;'>Termin buchen</h4>";
+    
+    const bookingDateInput = document.createElement("input");
+    bookingDateInput.type = "date";
+    bookingDateInput.style.width = "100%";
+    bookingDateInput.style.padding = "8px";
+    bookingDateInput.style.border = "1px solid #ddd";
+    bookingDateInput.style.borderRadius = "6px";
+    bookingDateInput.style.marginBottom = "8px";
+    bookingDateInput.min = new Date().toISOString().split('T')[0];
+    
+    const timeInput = document.createElement("select");
+    timeInput.style.width = "100%";
+    timeInput.style.padding = "8px";
+    timeInput.style.border = "1px solid #ddd";
+    timeInput.style.borderRadius = "6px";
+    timeInput.style.marginBottom = "8px";
+    timeInput.style.background = "white";
+    
+    const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
+    timeSlots.forEach(time => {
+        const option = document.createElement("option");
+        option.value = time;
+        option.textContent = time + " Uhr";
+        timeInput.appendChild(option);
+    });
+    
+    const reasonInput = document.createElement("input");
+    reasonInput.type = "text";
+    reasonInput.placeholder = "Grund für den Termin";
+    reasonInput.style.width = "100%";
+    reasonInput.style.padding = "8px";
+    reasonInput.style.border = "1px solid #ddd";
+    reasonInput.style.borderRadius = "6px";
+    reasonInput.style.marginBottom = "8px";
+    
+    const bookAppointmentBtn = document.createElement("button");
+    bookAppointmentBtn.textContent = "Termin buchen";
+    bookAppointmentBtn.style.background = "rgb(62, 125, 255)";
+    bookAppointmentBtn.style.color = "white";
+    bookAppointmentBtn.style.border = "none";
+    bookAppointmentBtn.style.padding = "8px 16px";
+    bookAppointmentBtn.style.borderRadius = "6px";
+    bookAppointmentBtn.style.cursor = "pointer";
+    bookAppointmentBtn.style.fontSize = "14px";
+    bookAppointmentBtn.style.width = "100%";
+    
+    const bookingResult = document.createElement("div");
+    bookingResult.style.marginTop = "8px";
+    bookingResult.style.padding = "8px";
+    bookingResult.style.borderRadius = "6px";
+    bookingResult.style.fontSize = "14px";
+    bookingResult.style.display = "none";
+    
+    bookAppointmentBtn.addEventListener("click", async () => {
+        const date = bookingDateInput.value;
+        const time = timeInput.value;
+        const reason = reasonInput.value.trim();
+        
+        if (!date || !time || !reason) {
+            bookingResult.textContent = "Bitte füllen Sie alle Felder aus.";
+            bookingResult.style.background = "#ffe6e6";
+            bookingResult.style.color = "#d32f2f";
+            bookingResult.style.display = "block";
+            return;
+        }
+        
+        try {
+            const sessionId = generateSessionId();
+            const userProfile = getUserProfile();
+            
+            const response = await fetch('/appointments/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userName: userProfile.name || 'Unbekannt',
+                    date: date,
+                    time: time,
+                    reason: reason,
+                    sessionId: sessionId
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                bookingResult.innerHTML = `
+                    <div style="color: #2e7d32; background: #e8f5e8; padding: 8px; border-radius: 4px;">
+                        ✅ ${data.message}<br>
+                        <strong>Termin-ID: ${data.appointment.id}</strong>
+                    </div>
+                `;
+                // Felder zurücksetzen
+                bookingDateInput.value = '';
+                reasonInput.value = '';
+            } else {
+                bookingResult.innerHTML = `
+                    <div style="color: #d32f2f; background: #ffe6e6; padding: 8px; border-radius: 4px;">
+                        ❌ ${data.error}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            bookingResult.innerHTML = `
+                <div style="color: #d32f2f; background: #ffe6e6; padding: 8px; border-radius: 4px;">
+                    ❌ Fehler beim Buchen des Termins
+                </div>
+            `;
+        }
+        
+        bookingResult.style.display = "block";
+    });
+    
+    bookingSection.appendChild(bookingDateInput);
+    bookingSection.appendChild(timeInput);
+    bookingSection.appendChild(reasonInput);
+    bookingSection.appendChild(bookAppointmentBtn);
+    bookingSection.appendChild(bookingResult);
+    
+    // Meine Termine anzeigen
+    const myAppointmentsSection = document.createElement("div");
+    myAppointmentsSection.style.marginBottom = "20px";
+    myAppointmentsSection.innerHTML = "<h4 style='margin: 0 0 8px 0; color: #666;'>Meine Termine</h4>";
+    
+    const showAppointmentsBtn = document.createElement("button");
+    showAppointmentsBtn.textContent = "Meine Termine anzeigen";
+    showAppointmentsBtn.style.background = "#28a745";
+    showAppointmentsBtn.style.color = "white";
+    showAppointmentsBtn.style.border = "none";
+    showAppointmentsBtn.style.padding = "8px 16px";
+    showAppointmentsBtn.style.borderRadius = "6px";
+    showAppointmentsBtn.style.cursor = "pointer";
+    showAppointmentsBtn.style.fontSize = "14px";
+    showAppointmentsBtn.style.width = "100%";
+    showAppointmentsBtn.style.marginBottom = "8px";
+    
+    const appointmentsList = document.createElement("div");
+    appointmentsList.style.marginTop = "8px";
+    appointmentsList.style.padding = "8px";
+    appointmentsList.style.background = "#f8f9fa";
+    appointmentsList.style.borderRadius = "6px";
+    appointmentsList.style.fontSize = "14px";
+    appointmentsList.style.display = "none";
+    
+    showAppointmentsBtn.addEventListener("click", async () => {
+        try {
+            const sessionId = generateSessionId();
+            const response = await fetch(`/appointments/user/${sessionId}`);
+            const data = await response.json();
+            
+            if (data.success && data.appointments.length > 0) {
+                const appointmentsHtml = data.appointments.map(apt => `
+                    <div style="border: 1px solid #ddd; padding: 8px; margin: 4px 0; border-radius: 4px; background: white;">
+                        <strong>${apt.date} um ${apt.time} Uhr</strong><br>
+                        Grund: ${apt.reason}<br>
+                        <button onclick="cancelAppointment(${apt.id}, '${sessionId}')" 
+                                style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 4px;">
+                            Stornieren
+                        </button>
+                    </div>
+                `).join('');
+                
+                appointmentsList.innerHTML = appointmentsHtml;
+            } else {
+                appointmentsList.innerHTML = '<em>Keine Termine gefunden.</em>';
+            }
+        } catch (error) {
+            appointmentsList.innerHTML = '<em>Fehler beim Laden der Termine.</em>';
+        }
+        
+        appointmentsList.style.display = "block";
+    });
+    
+    myAppointmentsSection.appendChild(showAppointmentsBtn);
+    myAppointmentsSection.appendChild(appointmentsList);
+    
+    // Schließen-Button
+    const closeAppointmentBtn = document.createElement("button");
+    closeAppointmentBtn.textContent = "Schließen";
+    closeAppointmentBtn.style.background = "#6c757d";
+    closeAppointmentBtn.style.color = "white";
+    closeAppointmentBtn.style.border = "none";
+    closeAppointmentBtn.style.padding = "8px 16px";
+    closeAppointmentBtn.style.borderRadius = "6px";
+    closeAppointmentBtn.style.cursor = "pointer";
+    closeAppointmentBtn.style.fontSize = "14px";
+    closeAppointmentBtn.style.width = "100%";
+    closeAppointmentBtn.addEventListener("click", () => {
+        appointmentInterface.style.display = "none";
+    });
+    
+    // Termin-Interface zusammenbauen
+    appointmentInterface.appendChild(appointmentHeader);
+    appointmentInterface.appendChild(availabilitySection);
+    appointmentInterface.appendChild(bookingSection);
+    appointmentInterface.appendChild(myAppointmentsSection);
+    appointmentInterface.appendChild(closeAppointmentBtn);
+    
+    // Termin-Button Event
+    appointmentButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        appointmentInterface.style.display = appointmentInterface.style.display === "block" ? "none" : "block";
+    });
+    
+    // Termin stornieren Funktion (global verfügbar)
+    window.cancelAppointment = async function(appointmentId, sessionId) {
+        try {
+            const response = await fetch(`/appointments/${appointmentId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: sessionId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(data.message);
+                // Termine neu laden
+                showAppointmentsBtn.click();
+            } else {
+                alert(data.error);
+            }
+        } catch (error) {
+            alert('Fehler beim Stornieren des Termins');
+        }
+    };
+
     // Profil-Dialog
     const profileDialog = document.createElement("div");
     profileDialog.id = "profile-dialog";
@@ -761,6 +1108,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (menu.style.display === "block") menu.style.display = "none";
         if (languageMenu.style.display === "block") languageMenu.style.display = "none";
         if (profileDialog.style.display === "block") profileDialog.style.display = "none";
+        if (appointmentInterface.style.display === "block") appointmentInterface.style.display = "none";
     });
 
     // Toggle expanded size when clicking the menu item
@@ -805,16 +1153,19 @@ document.addEventListener("DOMContentLoaded", () => {
         header.style.display = "none";
         // Hide any open menu
         if (menu.style.display === "block") menu.style.display = "none";
+        if (appointmentInterface.style.display === "block") appointmentInterface.style.display = "none";
     });
 
     header.appendChild(title);
     header.appendChild(headerSpacer);
     header.appendChild(languageButton);
     header.appendChild(profileButton);
+    header.appendChild(appointmentButton);
     header.appendChild(optionsButton);
     header.appendChild(closeButton);
     header.appendChild(languageMenu);
     header.appendChild(profileDialog);
+    header.appendChild(appointmentInterface);
     chatbotContainer.appendChild(header);
 
     // Add chat area
